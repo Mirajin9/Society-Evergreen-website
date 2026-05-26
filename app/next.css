@@ -1,0 +1,92 @@
+html,
+body {
+  min-height: 100%;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+button:disabled,
+.btn[aria-disabled="true"] {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.page-shell {
+  min-height: 100vh;
+}
+
+.auth-note {
+  color: var(--muted);
+  font-size: 12.5px;
+  margin-top: 10px;
+}
+
+.error-box {
+  background: var(--rust-bg);
+  border: 1px solid #e2c3b3;
+  border-radius: var(--r-sm);
+  color: var(--rust);
+  font-size: 13px;
+  padding: 10px 12px;
+}
+
+.success-box {
+  background: var(--leaf);
+  border: 1px solid var(--moss);
+  border-radius: var(--r-sm);
+  color: var(--green-2);
+  font-size: 13px;
+  padding: 10px 12px;
+}
+
+.table-wrap {
+  overflow-x: auto;
+}
+
+.admin-member-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.loading-pad {
+  padding: 32px;
+  color: var(--muted);
+}
+
+@media (max-width: 860px) {
+  .login-shell,
+  .shell,
+  .foot {
+    display: block;
+  }
+
+  .login-art {
+    min-height: 220px;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .sidebar {
+    position: static;
+    width: 100%;
+    height: auto;
+  }
+
+  .page-head,
+  .page-body,
+  .portal-head,
+  .section,
+  .hero,
+  .topbar {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  .g-12-8,
+  .g-8-12 {
+    grid-template-columns: 1fr;
+  }
+}
