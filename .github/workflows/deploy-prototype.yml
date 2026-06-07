@@ -1,14 +1,12 @@
-# Deploy the Next.js prototype to GitHub Pages
-# URL: https://mirajin9.github.io/Society-Evergreen-website/
+# Deploy the Next.js site to GitHub Pages
+# Live URL: https://mirajin9.github.io/Society-Evergreen-website/
 #
 # One-time setup: Settings → Pages → Source → "GitHub Actions"
 #
 # IMPORTANT: Real member data (data.jsx) is NEVER deployed.
-# The public demo uses data.demo.jsx — 12 named fictional members + 153 numbered
-# placeholders. All emails @example.com, all names clearly fictional.
-# Admin login: flat 111 / admin4321   |   Member login: any flat / admin123
+# data.demo.jsx — 12 fictional members — is used instead.
 
-name: Deploy Prototype to GitHub Pages
+name: Deploy to GitHub Pages
 
 on:
   push:
@@ -31,7 +29,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Setup Node.js 20
         uses: actions/setup-node@v4
         with:
           node-version: "20"
@@ -40,16 +38,23 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Swap in demo data (real data.jsx is NEVER deployed)
+      - name: Use demo data (real data.jsx excluded from public deployment)
         run: cp data.demo.jsx data.jsx
 
-      - name: Remove API routes (not supported in static export)
+      - name: Remove server-only API routes (incompatible with static export)
         run: rm -rf app/api
 
-      - name: Build static export
+      - name: Build Next.js static export
         run: npm run build
         env:
           STATIC_EXPORT: "true"
+
+      - name: Verify build output
+        run: |
+          echo "=== out/ directory contents ==="
+          ls -la out/
+          echo "=== Checking index.html exists ==="
+          test -f out/index.html && echo "✓ index.html found" || (echo "✗ index.html MISSING — build may have failed" && exit 1)
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
@@ -62,6 +67,9 @@ jobs:
     environment:
       name: github-pages
       url: ${{ steps.deploy.outputs.page_url }}
+    permissions:
+      pages: write
+      id-token: write
     steps:
       - name: Deploy to GitHub Pages
         id: deploy
