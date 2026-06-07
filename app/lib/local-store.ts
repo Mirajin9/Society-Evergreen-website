@@ -128,11 +128,42 @@ export async function ensureLocalStore(): Promise<LocalStore> {
   return initPromise;
 }
 
+// Bundled fallback seed used when /api/local/seed is unavailable (e.g. static GitHub Pages).
+// Fictional data only — 12 demo members, all @example.com emails.
+const DEMO_SEED = {
+  society: {
+    name: "Evergreen Apartment", registrationNo: "Regd No. 837",
+    address: "Plot 9, Sector 7, Dwarka, New Delhi 110075",
+    officeTimings: "To be updated", email: "evergreensocietyplot9@gmail.com",
+    phone: "011-42441492", preferredDomain: "evergreen-dwarka"
+  },
+  members: [
+    { id: "EA-DEMO-01", flat: 1, membership: "101", name: "MR. Arjun Demo", floor: 0, email: "demo.member1@example.com", phone: "+91 99999 00001", alternatePhone: null, parking: "P-001", ownership: "Owner", status: "Active", committee: "President", vehicleNumber: "DL-XX-1001" },
+    { id: "EA-DEMO-02", flat: 2, membership: null, name: "MRS. Priya Sample", floor: 0, email: null, phone: null, alternatePhone: null, parking: "P-002", ownership: "Owner", status: "Active", committee: null, vehicleNumber: null },
+    { id: "EA-DEMO-03", flat: 3, membership: "103", name: "MR. Ravi Placeholder", floor: 0, email: null, phone: "+91 99999 00003", alternatePhone: null, parking: null, ownership: "Owner", status: "Active", committee: null, vehicleNumber: null },
+    { id: "EA-DEMO-04", flat: 4, membership: "104", name: "MRS. Sunita Testcase", floor: 0, email: "demo.member4@example.com", phone: "+91 99999 00004", alternatePhone: null, parking: "P-004", ownership: "Owner", status: "Active", committee: "Secretary", vehicleNumber: "DL-XX-1004" },
+    { id: "EA-DEMO-05", flat: 5, membership: null, name: "MR. Amit Mockdata", floor: 0, email: null, phone: null, alternatePhone: null, parking: "P-005", ownership: "Tenant", status: "Active", committee: null, vehicleNumber: null },
+    { id: "EA-DEMO-06", flat: 6, membership: "106", name: "SMT. Kavita Sampleset", floor: 1, email: "demo.member6@example.com", phone: "+91 99999 00006", alternatePhone: null, parking: "P-006", ownership: "Owner", status: "Active", committee: "Treasurer", vehicleNumber: "DL-XX-1006" },
+    { id: "EA-DEMO-07", flat: 7, membership: "107", name: "MR. Suresh Demouser", floor: 1, email: null, phone: "+91 99999 00007", alternatePhone: null, parking: null, ownership: "Owner (Joint)", status: "Active", committee: null, vehicleNumber: null },
+    { id: "EA-DEMO-08", flat: 8, membership: null, name: "MR. Vikram Testflat", floor: 1, email: "demo.member8@example.com", phone: null, alternatePhone: null, parking: "P-008", ownership: "Owner", status: "Active", committee: "Vice-President", vehicleNumber: "DL-XX-1008" },
+    { id: "EA-DEMO-09", flat: 9, membership: "109", name: "MS. Nisha Demoname", floor: 2, email: null, phone: null, alternatePhone: null, parking: null, ownership: "Tenant", status: "Active", committee: null, vehicleNumber: null },
+    { id: "EA-DEMO-10", flat: 10, membership: "110", name: "MR. Anil Sampleman", floor: 2, email: "demo.member10@example.com", phone: "+91 99999 00010", alternatePhone: "+91 88888 00010", parking: "P-010", ownership: "Owner", status: "Active", committee: null, vehicleNumber: "DL-XX-1010" },
+    { id: "EA-DEMO-11", flat: 111, membership: "111", name: "ADMIN Testaccount", floor: 0, email: "admin@example.com", phone: "+91 99999 00111", alternatePhone: null, parking: "P-111", ownership: "Owner", status: "Active", committee: null, vehicleNumber: null },
+    { id: "EA-DEMO-12", flat: 12, membership: null, name: "MRS. Demo Resident", floor: 3, email: null, phone: null, alternatePhone: null, parking: null, ownership: "Owner", status: "Inactive", committee: null, vehicleNumber: null },
+  ]
+};
+
 async function loadStore(): Promise<LocalStore> {
   const existing = readStore();
   if (existing) return migrateStore(existing);
 
-  const seed = await fetch("/api/local/seed", { cache: "no-store" }).then((res) => res.json());
+  let seed: typeof DEMO_SEED = DEMO_SEED;
+  try {
+    const res = await fetch("/api/local/seed", { cache: "no-store" });
+    if (res.ok) seed = await res.json();
+  } catch {
+    // Static deployment (e.g. GitHub Pages) — API unavailable, using bundled demo data
+  }
   const members = (seed.members || []).map(normalizeMember) as LocalMember[];
   const store: LocalStore = {
     version: CURRENT_VERSION,
