@@ -1,0 +1,67 @@
+# Deploy the static prototype to GitHub Pages
+# URL: https://mirajin9.github.io/Society-Evergreen-website/
+#
+# Setup (one-time, in GitHub repo settings):
+#   Settings → Pages → Source → "GitHub Actions"
+#
+# IMPORTANT: Real member data (data.jsx) is NEVER deployed.
+# The public demo uses data.demo.jsx — 12 named fictional members + 153 numbered
+# placeholders. All email addresses use @example.com; all names are clearly fake.
+# Admin login: flat 111 / admin4321   |   Member login: any flat / admin123
+
+name: Deploy Prototype to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "index.html"
+      - "styles.css"
+      - "*.jsx"
+      - ".github/workflows/deploy-prototype.yml"
+  workflow_dispatch: # allow manual trigger from GitHub UI
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Collect prototype files (anonymized demo data only)
+        run: |
+          mkdir -p _site
+          cp index.html       _site/
+          cp styles.css       _site/
+          cp app.jsx          _site/
+          cp components.jsx   _site/
+          cp public.jsx       _site/
+          cp member.jsx       _site/
+          cp admin.jsx        _site/
+          cp tweaks-panel.jsx _site/
+          # Use anonymized demo data — real member data (data.jsx) is excluded
+          cp data.demo.jsx    _site/data.jsx
+          echo "Files staged for deployment (real data.jsx excluded):"
+          ls -lh _site/
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - name: Deploy to GitHub Pages
+        id: deploy
+        uses: actions/deploy-pages@v4

@@ -211,6 +211,56 @@ export async function loginLocal(username: string, password: string): Promise<Lo
   return session;
 }
 
+const OTP_KEY = "evergreen.otp.v1";
+const MOCK_OTP = "123456";
+
+interface OtpState { mobile: string; flatNo: number; expiresAt: number }
+
+export async function requestOtp(mobile: string): Promise<{ flatNo: number }> {
+  const store = await ensureLocalStore();
+  const normalized = mobile.replace(/\D/g, "");
+  const member = store.members.find(
+    (m) =>
+      m.phone?.replace(/\D/g, "") === normalized ||
+      m.alternatePhone?.replace(/\D/g, "") === normalized
+  );
+  if (!member) {
+    throw new Error("NOT_REGISTERED");
+  }
+  const state: OtpState = { mobile: normalized, flatNo: member.flatNo, expiresAt: Date.now() + 5 * 60 * 1000 };
+  window.localStorage.setItem(OTP_KEY, JSON.stringify(state));
+  // Mock: log OTP to console instead of sending SMS
+  console.log(`[DEV] OTP for ${mobile} (Flat ${member.flatNo}): ${MOCK_OTP}`);
+  return { flatNo: member.flatNo };
+}
+
+export async function verifyOtp(mobile: string, otp: string): Promise<LocalSession> {
+  const raw = window.localStorage.getItem(OTP_KEY);
+  if (!raw) throw new Error("OTP expired. Please request a new one.");
+  const state = JSON.parse(raw) as OtpState;
+  const normalized = mobile.replace(/\D/g, "");
+  if (state.mobile !== normalized) throw new Error("Mobile number mismatch. Please request a new OTP.");
+  if (Date.now() > state.expiresAt) {
+    window.localStorage.removeItem(OTP_KEY);
+    throw new Error("OTP has expired. Please request a new one.");
+  }
+  if (otp.trim() !== MOCK_OTP) {
+    throw new Error("INVALID_OTP");
+  }
+  window.localStorage.removeItem(OTP_KEY);
+  const store = await ensureLocalStore();
+  const member = store.members.find((m) => m.flatNo === state.flatNo);
+  const credential = store.credentials.find((c) => c.flatNo === state.flatNo);
+  const session: LocalSession = {
+    username: String(state.flatNo),
+    flatNo: state.flatNo,
+    activeRole: credential?.roles.includes("admin") ? "admin" : "member",
+    roles: credential?.roles || ["member"]
+  };
+  setSession(session);
+  return session;
+}
+
 export function getSession(): LocalSession | null {
   if (typeof window === "undefined") return null;
   const raw = window.localStorage.getItem(SESSION_KEY);
