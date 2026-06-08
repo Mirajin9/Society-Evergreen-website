@@ -4,7 +4,7 @@
 # One-time setup: Settings → Pages → Source → "GitHub Actions"
 #
 # IMPORTANT: Real member data (data.jsx) is NEVER deployed.
-# data.demo.jsx — 12 fictional members — is used instead.
+# data.demo.jsx (12 fictional members) is used instead.
 
 name: Deploy to GitHub Pages
 
@@ -38,23 +38,35 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Use demo data (real data.jsx excluded from public deployment)
+      - name: Use demo data (real data.jsx never deployed)
         run: cp data.demo.jsx data.jsx
 
-      - name: Remove server-only API routes (incompatible with static export)
+      - name: Remove server-only API routes
         run: rm -rf app/api
 
-      - name: Build Next.js static export
-        run: npm run build
-        env:
-          STATIC_EXPORT: "true"
-
-      - name: Verify build output
+      - name: Write static-export Next.js config
         run: |
-          echo "=== out/ directory contents ==="
+          cat > next.config.mjs << 'NEXTCONFIG'
+          /** @type {import('next').NextConfig} */
+          const nextConfig = {
+            reactStrictMode: true,
+            output: "export",
+            basePath: "/Society-Evergreen-website",
+            trailingSlash: true,
+            images: { unoptimized: true },
+          };
+          export default nextConfig;
+          NEXTCONFIG
+          echo "next.config.mjs written:"
+          cat next.config.mjs
+
+      - name: Build
+        run: npm run build
+
+      - name: Verify output
+        run: |
           ls -la out/
-          echo "=== Checking index.html exists ==="
-          test -f out/index.html && echo "✓ index.html found" || (echo "✗ index.html MISSING — build may have failed" && exit 1)
+          test -f out/index.html && echo "index.html OK" || (echo "index.html MISSING" && exit 1)
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
