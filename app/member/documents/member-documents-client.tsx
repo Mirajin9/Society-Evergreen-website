@@ -1,29 +1,60 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { PageHead, StatusBadge } from "@/app/components/ui";
+import { Icon, StatusBadge } from "@/app/components/ui";
 import { ensureLocalStore, getSession, visibleDocuments, type LocalDocument, type LocalStore } from "@/app/lib/local-store";
 
 export function MemberDocumentsClient() {
   const [store, setStore] = useState<LocalStore | null>(null);
   const [category, setCategory] = useState("all");
+
   useEffect(() => {
     ensureLocalStore().then(setStore);
   }, []);
+
   if (!store) return <div className="loading-pad">Loading documents...</div>;
 
   const session = getSession();
-  const documents = visibleDocuments(store, session?.activeRole || "member")
-    .filter((document) => category === "all" || document.category === category);
+  const allDocs = visibleDocuments(store, session?.activeRole || "member");
+  const documents = allDocs.filter((document) => category === "all" || document.category === category);
 
   return (
     <>
-      <PageHead title="Documents" sub="View and download documents shared with members." breadcrumb="MEMBER - DOCUMENTS" />
-      <div className="page-body">
-        <div className="chips" style={{ marginBottom: 18 }}>
+      <header className="pub-page-header">
+        <div className="eyebrow-pub">Member library</div>
+        <h1>Documents &amp; Records</h1>
+        <p className="ph-sub">View and download official society records shared with members.</p>
+      </header>
+
+      <section className="pub-section" style={{ background: "#fff", paddingTop: 36, paddingBottom: 44 }}>
+        <div className="chips" style={{ marginBottom: 24 }}>
           <button className={`chip ${category === "all" ? "on" : ""}`} onClick={() => setCategory("all")}>All</button>
-          {store.records.map((record) => <button key={record.key} className={`chip ${category === record.key ? "on" : ""}`} onClick={() => setCategory(record.key)}>{record.label}</button>)}
+          {store.records.map((record) => (
+            <button key={record.key} className={`chip ${category === record.key ? "on" : ""}`} onClick={() => setCategory(record.key)}>{record.label}</button>
+          ))}
         </div>
+
+        {/* Record categories overview */}
+        <div className="tile-grid" style={{ gridTemplateColumns: "repeat(2, 1fr)", marginBottom: 32 }}>
+          {store.records
+            .filter((r) => category === "all" || r.key === category)
+            .map((record) => {
+              const count = allDocs.filter((d) => d.category === record.key).length;
+              return (
+                <div key={record.key} className="tile-card" style={{ cursor: "default" }}>
+                  <div className="tile-icon"><Icon name="folder" size={20} color="var(--navy)" /></div>
+                  <div className="tile-title">{record.label}</div>
+                  <p className="tile-desc">{record.description}</p>
+                  <div style={{ marginTop: "auto", paddingTop: 8, fontSize: 12.5, fontWeight: 600, color: count > 0 ? "var(--flag-green)" : "var(--muted)" }}>
+                    {count > 0 ? `${count} document${count > 1 ? "s" : ""}` : "No documents yet"}
+                  </div>
+                </div>
+              );
+            })}
+        </div>
+
+        {/* Uploaded documents table */}
+        <h2 style={{ fontSize: 20, marginBottom: 14 }}>Available downloads</h2>
         <div className="card table-wrap">
           <table className="tbl">
             <thead><tr><th>Document</th><th>Category</th><th>Visibility</th><th>Uploaded</th><th>Actions</th></tr></thead>
@@ -31,9 +62,13 @@ export function MemberDocumentsClient() {
               {documents.map((document) => <DocumentRow document={document} key={document.id} />)}
             </tbody>
           </table>
-          {documents.length === 0 && <div className="empty-state" style={{ border: 0 }}>No documents are available in this section yet.</div>}
+          {documents.length === 0 && (
+            <div className="empty-state" style={{ border: 0 }}>
+              No documents have been uploaded in this section yet. The society office will publish records here.
+            </div>
+          )}
         </div>
-      </div>
+      </section>
     </>
   );
 }

@@ -641,6 +641,28 @@ label.fl { display: block; font-size: 12.5px; color: var(--ink-2); margin-bottom
   margin-top: 8px; justify-content: center; padding: 12px 18px;
 }
 
+/* ─── Portal sub-nav (admin tab strip) ──────────────────────────────── */
+.portal-subnav {
+  background: #fff;
+  border-bottom: 1px solid var(--line);
+  display: flex; gap: 2px;
+  padding: 0 28px;
+  overflow-x: auto;
+  position: sticky; top: 64px; z-index: 18;
+  scrollbar-width: thin;
+}
+.portal-subnav-link {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 13px 14px; white-space: nowrap;
+  font-size: 13.5px; color: var(--muted); font-weight: 500;
+  text-decoration: none; border-bottom: 2px solid transparent;
+  transition: color .15s, border-color .15s;
+}
+.portal-subnav-link:hover { color: var(--navy); }
+.portal-subnav-link.active {
+  color: var(--navy); border-bottom-color: var(--saffron);
+}
+
 /* ─── Notice ticker strip ───────────────────────────────────────────── */
 .notice-strip {
   background: var(--saffron-light);
