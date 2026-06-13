@@ -66,7 +66,7 @@ export function AdminMembersClient() {
                 <th>M-No.</th>
                 <th>Contact</th>
                 <th>Occupancy</th>
-                <th>Parking</th>
+                <th>Vehicle</th>
                 <th>Status</th>
                 <th></th>
               </tr>
@@ -92,7 +92,7 @@ export function AdminMembersClient() {
                     <div className="mono" style={{ fontSize: 11, color: member.phone ? "var(--muted)" : "var(--rust)", marginTop: 2 }}>{member.phone || "no phone"}</div>
                   </td>
                   <td>{member.ownership}</td>
-                  <td className="mono" style={{ fontSize: 12 }}>{member.parkingSlot || "-"}</td>
+                  <td className="mono" style={{ fontSize: 12 }}>{member.vehicleNumber || "-"}</td>
                   <td><StatusBadge status={member.status} /></td>
                   <td className="admin-member-actions"><button className="btn-icon" onClick={() => setEditing(member)} aria-label={`Edit flat ${member.flatNo}`}><Icon name="edit" size={13} /></button></td>
                 </tr>
@@ -123,7 +123,6 @@ function EditMemberModal({ member, onClose, onSaved }: { member: LocalMember; on
       ownership: text(form, "ownership"),
       status: text(form, "status"),
       dateOfMembership: nullable(form, "dateOfMembership"),
-      parkingSlot: nullable(form, "parkingSlot"),
       vehicleNumber: nullable(form, "vehicleNumber"),
       remarks: nullable(form, "remarks")
     };
@@ -154,8 +153,7 @@ function EditMemberModal({ member, onClose, onSaved }: { member: LocalMember; on
           <Field name="email" label="Email ID" defaultValue={member.email || ""} type="email" />
           <Field name="phone" label="Mobile number" defaultValue={member.phone || ""} />
           <Field name="alternatePhone" label="Alternate phone" defaultValue={member.alternatePhone || ""} />
-          <Field name="parkingSlot" label="Parking slot" defaultValue={member.parkingSlot || ""} />
-          <Field name="vehicleNumber" label="Vehicle number" defaultValue={member.vehicleNumber || ""} />
+          <Field name="vehicleNumber" label="Vehicle number(s)" defaultValue={member.vehicleNumber || ""} />
           <div>
             <label className="fl">Occupancy status</label>
             <select className="field" name="ownership" defaultValue={member.ownership}>

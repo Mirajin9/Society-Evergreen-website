@@ -50,7 +50,7 @@ export function MemberDashboardClient() {
       href: "/member/documents",
       icon: "doc",
       title: "Documents & Records",
-      desc: "Audit reports, accounts, parking register, forms and other records.",
+      desc: "Audit reports, accounts, share certificates, forms and other records.",
       meta: `${store.records.length} record sections`
     },
     {
@@ -94,9 +94,9 @@ export function MemberDashboardClient() {
           <div className="s">{agm ? new Date(agm.date).toLocaleDateString("en-IN", { month: "long", year: "numeric" }) : "Not scheduled"}</div>
         </div>
         <div className="pub-kpi">
-          <div className="v">{member.parkingSlot || "—"}</div>
-          <div className="l">Parking slot</div>
-          <div className="s">{member.vehicleNumber || "No vehicle on file"}</div>
+          <div className="v">{member.vehicleNumber || "—"}</div>
+          <div className="l">Vehicle on file</div>
+          <div className="s">Vehicle ownership record</div>
         </div>
       </div>
 

@@ -50,7 +50,6 @@ export async function getAdminStats(supabase: SupabaseClient) {
       with_email: dc?.with_email ?? 0,
       with_phone: dc?.with_phone ?? 0,
       with_membership: dc?.with_membership ?? 0,
-      with_parking: dc?.with_parking ?? 0,
       with_ownership: dc?.with_ownership ?? 0,
     },
     logins: lb ?? { enabled: 0, pending: 0, not_invited: 0, no_email: 0, disabled: 0 },

@@ -18,7 +18,7 @@ create type visibility as enum (
   'public',       -- visible to anyone on the public site
   'members',      -- requires login, visible to any member
   'committee',    -- requires login + committee/admin role
-  'admin'         -- requires admin role (audit reports, parking map, etc.)
+  'admin'         -- requires admin role (audit reports, imports, etc.)
 );
 
 create type ownership_status as enum (
@@ -57,12 +57,12 @@ create type event_category as enum (
 
 create type document_category as enum (
   'agm', 'sgm', 'audit', 'annual_return', 'mc_resolution',
-  'election', 'parking', 'compliance', 'form', 'maintenance',
+  'election', 'vehicles', 'share_certificates', 'compliance', 'form', 'maintenance',
   'bye_laws', 'calendar_attachment', 'member_document', 'other'
 );
 
 create type complaint_category as enum (
-  'maintenance', 'security', 'parking', 'cleanliness',
+  'maintenance', 'security', 'vehicle', 'cleanliness',
   'noise', 'pets', 'other'
 );
 

@@ -12,7 +12,7 @@ The prototype in the project root (`index.html`, `*.jsx`) is a static React mock
 |---|---|---|
 | **Database** | Supabase Postgres | All data — members, events, documents, complaints, activity log |
 | **Auth** | Supabase Auth | Email + password sign-in, magic-link invites, session tokens |
-| **File storage** | Supabase Storage | PDFs (notices, audit reports, agm minutes, parking maps) |
+| **File storage** | Supabase Storage | PDFs, member documents, and admin import source files |
 | **Email** | Resend | Login invites, reminders, notices to members, complaint replies |
 | **Cron / background** | Supabase Edge Functions (Deno) | Reminder dispatcher, daily compliance check |
 | **Hosting (frontend)** | Vercel | Serves the Next.js app converted from the prototype |
@@ -40,12 +40,12 @@ These terms appear consistently across the schema, types, and APIs. Internalize 
 | **Member** | A row in the `members` table — represents a flat's occupant. Identified by `flat_no` (1–165). Each member may or may not have a corresponding user login. |
 | **User** | A Supabase Auth account. Created when a member is invited. One user belongs to one member; some members have no user (no email, never invited). |
 | **Role** | A user's permission level: `member`, `committee`, `admin`, `superadmin`. Stored on the user record. Used for authorization. |
-| **Profile completeness** | Of the 5 required fields (email, phone, membership_no, ownership, parking_slot), how many are filled. Computed live as `completeness_pct`. |
+| **Profile completeness** | Of the 4 required fields (email, phone, membership_no, ownership), how many are filled. Computed live as `completeness_pct`. |
 | **Notice** | A formal communication published by the office. Has a category (AGM / Election / Maintenance / Payment / Compliance / Notice) and visibility (`public`, `members`, `committee`). |
 | **Event** | A row in the society calendar. Same categories + visibility as notices, plus a start/end time and optional location. |
 | **Document** | A PDF or other file uploaded to Supabase Storage. Has a visibility row in `document_access` controlling who can download it. |
 | **Reminder** | A scheduled email tied to an event or due date. Lives in the `reminders` table with `dispatch_at` and `status` columns; the reminder cron picks up rows where `status = 'queued'` and `dispatch_at <= now()`. |
-| **Complaint** | A maintenance/security/parking issue raised by a member. Has a thread of `complaint_messages`. |
+| **Complaint** | A maintenance/security/cleanliness issue raised by a member. Has a thread of `complaint_messages`. |
 | **Activity entry** | A row in `activity_log`. Append-only audit trail of every meaningful action: notice published, member updated, login enabled, document uploaded. Used by the Activity Logs screen and for RCS compliance audits. |
 | **Self-update token** | A one-time URL token sent to members so they can fill in their own missing fields without needing a login first. |
 
@@ -116,7 +116,7 @@ public.members  (165 rows — one per flat)
    ├── public.member_documents      (per-member docs: NOC, ID proof, etc.)
    ├── public.complaints
    ├── public.complaint_messages
-   └── public.parking_slots          (1:1 optional)
+   └── public.share_certificate_rows (read-only member register)
 
 public.notices                       (society-wide notices)
 public.events                        (calendar events)

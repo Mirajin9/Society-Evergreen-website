@@ -25,11 +25,11 @@ export type EventCategory =
 
 export type DocumentCategory =
   | 'agm' | 'sgm' | 'audit' | 'annual_return' | 'mc_resolution'
-  | 'election' | 'parking' | 'compliance' | 'form' | 'maintenance'
+  | 'election' | 'vehicles' | 'share_certificates' | 'compliance' | 'form' | 'maintenance'
   | 'bye_laws' | 'calendar_attachment' | 'member_document' | 'other';
 
 export type ComplaintCategory =
-  | 'maintenance' | 'security' | 'parking' | 'cleanliness'
+  | 'maintenance' | 'security' | 'vehicle' | 'cleanliness'
   | 'noise' | 'pets' | 'other';
 
 export type ComplaintStatus =
@@ -89,10 +89,8 @@ export interface MemberRow {
   floor: number | null;
   has_co_owner: boolean;
   co_owner_name: string | null;
-  parking_slot: string | null;
   vehicle_number: string | null;
   vehicle_make_model: string | null;
-  rfid_tag: string | null;
   notes: string | null;
   meta: Record<string, unknown>;
   created_at: string;
@@ -184,6 +182,33 @@ export interface DocumentRow {
   deleted_at: string | null;
 }
 
+export interface ShareCertificateUploadRow {
+  id: string;
+  file_name: string;
+  storage_bucket: string;
+  storage_path: string | null;
+  row_count: number;
+  uploaded_by: string | null;
+  created_at: string;
+}
+
+export interface ShareCertificateRow {
+  id: string;
+  upload_id: string;
+  row_no: number;
+  flat_no: number | null;
+  membership_no: string | null;
+  member_name: string | null;
+  certificate_no: string | null;
+  issue_date: string | null;
+  shares_count: number | null;
+  distinctive_from: string | null;
+  distinctive_to: string | null;
+  remarks: string | null;
+  row_data: Record<string, unknown>;
+  created_at: string;
+}
+
 export interface ComplaintRow {
   id: string;
   code: string;
@@ -228,6 +253,32 @@ export interface ReminderRow {
   created_by: string | null;
   created_at: string;
   sent_at: string | null;
+}
+
+export interface SmsMessageRow {
+  id: string;
+  member_id: string | null;
+  mobile: string;
+  template_key: string;
+  body: string;
+  provider: string | null;
+  provider_message_id: string | null;
+  status: string;
+  error_message: string | null;
+  queued_at: string;
+  sent_at: string | null;
+  meta: Record<string, unknown>;
+}
+
+export interface OtpChallengeRow {
+  id: string;
+  member_id: string | null;
+  mobile: string;
+  otp_hash: string;
+  expires_at: string;
+  consumed_at: string | null;
+  attempts: number;
+  created_at: string;
 }
 
 export interface ActivityLogRow {

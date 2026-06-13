@@ -78,7 +78,6 @@ export interface AdminStats {
     with_email: number;
     with_phone: number;
     with_membership: number;
-    with_parking: number;
     with_ownership: number;
   };
   logins: {
@@ -104,7 +103,7 @@ export interface DataCompletionReport {
   full_profiles: number;
   overall_pct: number;
   by_field: {
-    key: 'email' | 'phone' | 'membership' | 'ownership' | 'parking';
+    key: 'email' | 'phone' | 'membership' | 'ownership';
     label: string;
     filled: number;
     missing: number;
@@ -130,7 +129,6 @@ export interface MemberImportRow {
   alternate_phone?: string;
   father_spouse?: string;
   ownership?: 'owner' | 'tenant' | 'owner_joint' | 'vacant';
-  parking?: string;
   vehicle?: string;
 }
 

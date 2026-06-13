@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Icon } from "@/app/components/ui";
 import {
   ensureLocalStore, getSession, memberForSession,
-  remindersForFlat, sortedNotices,
+  noticesForFlat, remindersForFlat,
   type LocalMember, type LocalStore, type NoticeCategory
 } from "@/app/lib/local-store";
 
@@ -29,7 +29,7 @@ export function MemberNoticesClient() {
 
   if (!store || !member) return <div className="loading-pad">Loading notices...</div>;
 
-  const notices = sortedNotices(store);
+  const notices = noticesForFlat(store, member.flatNo);
   const reminders = remindersForFlat(store, member.flatNo);
 
   return (
@@ -75,6 +75,7 @@ export function MemberNoticesClient() {
                   <span style={{ fontSize: 11, fontWeight: 600, padding: "3px 10px", borderRadius: 999, background: cat.bg, color: cat.fg }}>{cat.label}</span>
                   {n.pinned && <span style={{ fontSize: 11, fontWeight: 600, color: "var(--saffron)", display: "inline-flex", alignItems: "center", gap: 4 }}><Icon name="bell" size={11} color="var(--saffron)" /> Pinned</span>}
                   <span style={{ fontSize: 12, color: "var(--muted)", marginLeft: "auto" }}>
+                    {n.targetFlatNos?.length ? "Selected flats - " : ""}
                     {new Date(n.date).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })}
                   </span>
                 </div>

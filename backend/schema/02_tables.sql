@@ -52,10 +52,8 @@ create table public.members (
   floor                int,                            -- derived: G=0, 1F=1, …
   has_co_owner         boolean not null default false,
   co_owner_name        text,
-  parking_slot         text unique,                    -- e.g. "P-133"
   vehicle_number       text,
   vehicle_make_model   text,
-  rfid_tag             text unique,
   notes                text,
   meta                 jsonb not null default '{}'::jsonb,
   created_at           timestamptz not null default now(),
@@ -189,6 +187,33 @@ create table public.member_documents (
   created_at           timestamptz not null default now()
 );
 
+create table public.share_certificate_uploads (
+  id                   uuid primary key default gen_random_uuid(),
+  file_name            text not null,
+  storage_bucket       text not null default 'admin-imports',
+  storage_path         text,
+  row_count            int not null default 0,
+  uploaded_by          uuid references public.users(id) on delete set null,
+  created_at           timestamptz not null default now()
+);
+
+create table public.share_certificate_rows (
+  id                   uuid primary key default gen_random_uuid(),
+  upload_id            uuid not null references public.share_certificate_uploads(id) on delete cascade,
+  row_no               int not null,
+  flat_no              int references public.members(flat_no) on delete set null,
+  membership_no        text,
+  member_name          text,
+  certificate_no       text,
+  issue_date           date,
+  shares_count         int,
+  distinctive_from     text,
+  distinctive_to       text,
+  remarks              text,
+  row_data             jsonb not null default '{}'::jsonb,
+  created_at           timestamptz not null default now()
+);
+
 -- ─── Complaints ───────────────────────────────────────────────────────────
 create table public.complaints (
   id                   uuid primary key default gen_random_uuid(),
@@ -238,6 +263,32 @@ create table public.reminders (
   sent_at              timestamptz
 );
 
+create table public.sms_messages (
+  id                   uuid primary key default gen_random_uuid(),
+  member_id            uuid references public.members(id) on delete set null,
+  mobile               text not null,
+  template_key         text not null,
+  body                 text not null,
+  provider             text,
+  provider_message_id  text,
+  status               text not null default 'queued',
+  error_message        text,
+  queued_at            timestamptz not null default now(),
+  sent_at              timestamptz,
+  meta                 jsonb not null default '{}'::jsonb
+);
+
+create table public.otp_challenges (
+  id                   uuid primary key default gen_random_uuid(),
+  member_id            uuid references public.members(id) on delete cascade,
+  mobile               text not null,
+  otp_hash             text not null,
+  expires_at           timestamptz not null,
+  consumed_at          timestamptz,
+  attempts             int not null default 0,
+  created_at           timestamptz not null default now()
+);
+
 -- ─── Activity log (audit trail) ───────────────────────────────────────────
 -- Append-only. Triggered by application code AND by table triggers (see 04_functions.sql).
 create table public.activity_log (
@@ -273,19 +324,6 @@ create table public.meeting_documents (
   meeting_id           uuid not null references public.meetings(id) on delete cascade,
   document_id          uuid not null references public.documents(id) on delete cascade,
   primary key (meeting_id, document_id)
-);
-
--- ─── Parking ──────────────────────────────────────────────────────────────
--- Most parking info lives on members.parking_slot. This table tracks the slot
--- inventory (e.g. visitor slots, vacant slots, waitlist).
-create table public.parking_slots (
-  slot_no              text primary key,                -- "P-001", "P-V-12" for visitor
-  zone                 text,                            -- "basement-1", "open"
-  is_visitor           boolean not null default false,
-  is_active            boolean not null default true,
-  -- when allocated, the member is on the members table; this is a denorm for the waitlist
-  waitlisted_member_id uuid references public.members(id) on delete set null,
-  notes                text
 );
 
 -- ─── Audit/updated_at trigger glue (used in 04_functions.sql) ─────────────

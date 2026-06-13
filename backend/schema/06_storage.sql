@@ -23,6 +23,10 @@ insert into storage.buckets (id, name, public)
   values ('public-assets', 'public-assets', true)
   on conflict (id) do update set public = excluded.public;
 
+insert into storage.buckets (id, name, public)
+  values ('admin-imports', 'admin-imports', false)
+  on conflict (id) do update set public = excluded.public;
+
 -- ─── `documents` bucket policies ──────────────────────────────────────────
 -- A file's visibility is determined by the matching row in public.documents.
 -- We look it up by storage_path.
@@ -83,6 +87,11 @@ create policy "publicassets.write_admin" on storage.objects
   for all to authenticated
   using (bucket_id = 'public-assets' and public.is_admin())
   with check (bucket_id = 'public-assets' and public.is_admin());
+
+create policy "adminimports.admin_only" on storage.objects
+  for all to authenticated
+  using (bucket_id = 'admin-imports' and public.is_admin())
+  with check (bucket_id = 'admin-imports' and public.is_admin());
 
 -- ─── Practical guidance ───────────────────────────────────────────────────
 -- Frontend code should NEVER use Supabase signed URLs naively. Use the

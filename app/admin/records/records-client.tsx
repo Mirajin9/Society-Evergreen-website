@@ -2,7 +2,22 @@
 
 import { FormEvent, useEffect, useState } from "react";
 import { PageHead, StatusBadge } from "@/app/components/ui";
-import { addDocument, ensureLocalStore, type LocalDocument, type LocalStore, type LocalVisibility } from "@/app/lib/local-store";
+import { addDocument, ensureLocalStore, getSession, type LocalDocument, type LocalStore, type LocalVisibility } from "@/app/lib/local-store";
+
+const documentChecklist = [
+  { title: "Society registration certificate", category: "forms" },
+  { title: "Evergreen CGHS bye-laws", category: "forms" },
+  { title: "Latest audited accounts", category: "finance" },
+  { title: "Latest annual return", category: "finance" },
+  { title: "AGM notice and agenda", category: "agm" },
+  { title: "Last AGM minutes", category: "agm" },
+  { title: "MC meeting minutes", category: "mc" },
+  { title: "Election notice and result", category: "elections" },
+  { title: "Share certificate register", category: "share_certificates" },
+  { title: "Vehicle ownership register", category: "vehicles" },
+  { title: "Nomination form", category: "forms" },
+  { title: "Transfer / NOC forms", category: "forms" }
+];
 
 export function AdminRecordsClient() {
   const [store, setStore] = useState<LocalStore | null>(null);
@@ -24,12 +39,29 @@ export function AdminRecordsClient() {
       setError("Choose a file to upload.");
       return;
     }
-    if (file.size > 1_800_000) {
-      setError("For local testing, keep files below 1.8 MB. Production Supabase storage will support larger files.");
+    if (file.size > 8_000_000) {
+      setError("Keep uploads below 8 MB for this rollout.");
       return;
     }
     const category = String(form.get("category") || "forms");
     const record = store.records.find((item) => item.key === category);
+    const serverForm = new FormData();
+    serverForm.set("file", file);
+    serverForm.set("title", String(form.get("title") || file.name));
+    serverForm.set("category", category);
+    serverForm.set("visibility", String(form.get("visibility") || record?.defaultVisibility || "members"));
+    serverForm.set("description", String(form.get("description") || ""));
+    const session = getSession();
+    serverForm.set("actor", session ? `${session.username} / Flat ${session.flatNo}` : "MC user");
+
+    let uploadedToSupabase = false;
+    try {
+      const res = await fetch("/api/admin/documents/upload", { method: "POST", body: serverForm });
+      uploadedToSupabase = res.ok;
+    } catch {
+      uploadedToSupabase = false;
+    }
+
     const document = await addDocument({
       title: String(form.get("title") || file.name),
       category,
@@ -42,7 +74,7 @@ export function AdminRecordsClient() {
     });
     const next = await ensureLocalStore();
     setStore({ ...next });
-    setNotice(`${document.title} uploaded locally.`);
+    setNotice(`${document.title} uploaded${uploadedToSupabase ? " to Supabase and local preview" : " locally. Supabase upload did not complete."}.`);
     event.currentTarget.reset();
   }
 
@@ -95,6 +127,26 @@ export function AdminRecordsClient() {
               </tbody>
             </table>
             {(!store.documents || store.documents.length === 0) && <div className="empty-state" style={{ border: 0 }}>No documents uploaded yet.</div>}
+          </div>
+        </div>
+        <div className="card pad-lg" style={{ marginTop: 24 }}>
+          <div className="eyebrow">Suggested upload checklist</div>
+          <div className="grid g3" style={{ marginTop: 12 }}>
+            {documentChecklist.map((item) => {
+              const uploaded = (store.documents || []).some((document) => {
+                const haystack = `${document.title} ${document.fileName} ${document.category}`.toLowerCase();
+                return item.title.toLowerCase().split(/\s+/).some((word) => word.length > 4 && haystack.includes(word));
+              });
+              return (
+                <div className="card pad" key={item.title} style={{ boxShadow: "none" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "center" }}>
+                    <div style={{ fontWeight: 600, fontSize: 14 }}>{item.title}</div>
+                    <StatusBadge status={uploaded ? "Uploaded" : "Pending"} />
+                  </div>
+                  <div className="tiny" style={{ marginTop: 8 }}>{item.category}</div>
+                </div>
+              );
+            })}
           </div>
         </div>
         <div className="grid g3" style={{ marginTop: 24 }}>

@@ -28,6 +28,8 @@ export interface LocalCredential {
   flatNo: number;
   password: string;
   roles: LocalRole[];
+  isGeneratedFallback?: boolean;
+  note?: string;
 }
 
 export interface LocalEvent {
@@ -55,6 +57,14 @@ export interface LocalDocument {
   uploadedAt: string;
 }
 
+export interface LocalShareCertificateRegister {
+  id: string;
+  fileName: string;
+  uploadedAt: string;
+  columns: string[];
+  rows: Record<string, string>[];
+}
+
 export type NoticeCategory = "general" | "maintenance" | "agm" | "urgent" | "event";
 
 export interface LocalNotice {
@@ -64,6 +74,7 @@ export interface LocalNotice {
   date: string;            // ISO date
   category: NoticeCategory;
   pinned: boolean;
+  targetFlatNos: number[] | null; // null = all members
 }
 
 export interface LocalReminder {
@@ -107,6 +118,18 @@ export interface ChangeRequest {
   createdAt: string;       // ISO datetime
 }
 
+export interface LocalAuditLog {
+  id: string;
+  actorUsername: string;
+  actorFlatNo: number | null;
+  actorRole: LocalRole | "system";
+  action: string;
+  targetType: string;
+  targetLabel: string;
+  details: string;
+  createdAt: string;
+}
+
 export interface LocalStore {
   version: number;
   society: {
@@ -122,6 +145,7 @@ export interface LocalStore {
   credentials: LocalCredential[];
   events: LocalEvent[];
   documents: LocalDocument[];
+  shareCertificateRegister: LocalShareCertificateRegister | null;
   records: Array<{ key: string; label: string; defaultVisibility: LocalVisibility; description: string }>;
   complaintCategories: string[];
   notices: LocalNotice[];
@@ -129,6 +153,7 @@ export interface LocalStore {
   dues: LocalDues[];
   agms: AgmRecord[];
   changeRequests: ChangeRequest[];
+  auditLogs: LocalAuditLog[];
 }
 
 export interface LocalSession {
@@ -140,16 +165,25 @@ export interface LocalSession {
 
 const STORE_KEY = "evergreen.localStore.v1";
 const SESSION_KEY = "evergreen.localSession.v1";
-const CURRENT_VERSION = 3;
+const CURRENT_VERSION = 6;
+
+const MC_ROLES_BY_FLAT: Record<number, string> = {
+  157: "President",
+  133: "Vice President",
+  113: "Secretary",
+  99: "Treasurer",
+  111: "MC Member"
+};
 
 const recordCategories = [
   ["agm", "AGM / SGM / General Body Records", "members", "Meeting notice, agenda, minutes, resolutions, annexures."],
   ["mc", "Managing Committee Records", "members", "MC notices, agendas, minutes, resolutions and decisions."],
+  ["share_certificates", "Share Certificate Register", "members", "Read-only register of share certificates issued by the MC."],
   ["finance", "Financial & Audit Records", "members", "Audit reports, audited accounts, annual returns, statements."],
   ["notices", "Notices & Announcements", "members", "Society notices, shutdown notices, circulars and emergency notices."],
   ["elections", "Election Records", "members", "Election schedule, nominations, candidate lists and results."],
-  ["parking", "Parking Information", "members", "Parking policies, allocations, visitor rules and vehicle records."],
-  ["forms", "Forms & Downloadable Formats", "members", "NOC, tenant, renovation, parking, complaint and update forms."]
+  ["vehicles", "Vehicle Register", "members", "List of vehicles declared by members."],
+  ["forms", "Forms & Downloadable Formats", "members", "NOC, tenant, renovation, complaint and update forms."]
 ] as const;
 
 const defaultEvents: LocalEvent[] = [
@@ -184,7 +218,8 @@ const defaultNotices: LocalNotice[] = [
     body: "Notice is hereby given that the 47th AGM of Evergreen Apartment CGHS Ltd. will be held on 28 September 2026 at 11:00 AM in the Community Hall. All members are requested to attend. Agenda enclosed.",
     date: "2026-09-05",
     category: "agm",
-    pinned: true
+    pinned: true,
+    targetFlatNos: null
   },
   {
     id: "ntc-2",
@@ -192,7 +227,8 @@ const defaultNotices: LocalNotice[] = [
     body: "Overhead and underground water tanks will be cleaned on 12 June 2026 between 10 AM and 2 PM. Water supply will remain suspended during this period. Kindly store water in advance.",
     date: "2026-06-08",
     category: "maintenance",
-    pinned: false
+    pinned: false,
+    targetFlatNos: null
   },
   {
     id: "ntc-3",
@@ -200,7 +236,8 @@ const defaultNotices: LocalNotice[] = [
     body: "Quarterly maintenance charges for July–September 2026 are now due. Members are requested to clear dues by 15 July 2026 to avoid a late fee of ₹100 per month.",
     date: "2026-06-01",
     category: "general",
-    pinned: false
+    pinned: false,
+    targetFlatNos: null
   },
   {
     id: "ntc-4",
@@ -208,7 +245,8 @@ const defaultNotices: LocalNotice[] = [
     body: "Modernization of the Block A lift will be carried out from 18–20 June 2026. Residents may use the Block B lift during this period. Inconvenience is regretted.",
     date: "2026-05-28",
     category: "urgent",
-    pinned: false
+    pinned: false,
+    targetFlatNos: null
   }
 ];
 
@@ -314,59 +352,45 @@ const DEMO_SEED = {
     officeTimings: "To be updated", email: "evergreensocietyplot9@gmail.com",
     phone: "011-42441492", preferredDomain: "evergreen-dwarka"
   },
+  documents: [] as LocalDocument[],
+  shareCertificateRegister: null as LocalShareCertificateRegister | null,
   members: [
-    { id: "EA-DEMO-01", flat: 1, membership: "101", name: "MR. Arjun Demo", floor: 0, email: "demo.member1@example.com", phone: "+91 99999 00001", alternatePhone: null, parking: "P-001", ownership: "Owner", status: "Active", committee: "President", vehicleNumber: "DL-XX-1001" },
-    { id: "EA-DEMO-02", flat: 2, membership: null, name: "MRS. Priya Sample", floor: 0, email: null, phone: null, alternatePhone: null, parking: "P-002", ownership: "Owner", status: "Active", committee: null, vehicleNumber: null },
-    { id: "EA-DEMO-03", flat: 3, membership: "103", name: "MR. Ravi Placeholder", floor: 0, email: null, phone: "+91 99999 00003", alternatePhone: null, parking: null, ownership: "Owner", status: "Active", committee: null, vehicleNumber: null },
-    { id: "EA-DEMO-04", flat: 4, membership: "104", name: "MRS. Sunita Testcase", floor: 0, email: "demo.member4@example.com", phone: "+91 99999 00004", alternatePhone: null, parking: "P-004", ownership: "Owner", status: "Active", committee: "Secretary", vehicleNumber: "DL-XX-1004" },
-    { id: "EA-DEMO-05", flat: 5, membership: null, name: "MR. Amit Mockdata", floor: 0, email: null, phone: null, alternatePhone: null, parking: "P-005", ownership: "Tenant", status: "Active", committee: null, vehicleNumber: null },
-    { id: "EA-DEMO-06", flat: 6, membership: "106", name: "SMT. Kavita Sampleset", floor: 1, email: "demo.member6@example.com", phone: "+91 99999 00006", alternatePhone: null, parking: "P-006", ownership: "Owner", status: "Active", committee: "Treasurer", vehicleNumber: "DL-XX-1006" },
-    { id: "EA-DEMO-07", flat: 7, membership: "107", name: "MR. Suresh Demouser", floor: 1, email: null, phone: "+91 99999 00007", alternatePhone: null, parking: null, ownership: "Owner (Joint)", status: "Active", committee: null, vehicleNumber: null },
-    { id: "EA-DEMO-08", flat: 8, membership: null, name: "MR. Vikram Testflat", floor: 1, email: "demo.member8@example.com", phone: null, alternatePhone: null, parking: "P-008", ownership: "Owner", status: "Active", committee: "Vice-President", vehicleNumber: "DL-XX-1008" },
-    { id: "EA-DEMO-09", flat: 9, membership: "109", name: "MS. Nisha Demoname", floor: 2, email: null, phone: null, alternatePhone: null, parking: null, ownership: "Tenant", status: "Active", committee: null, vehicleNumber: null },
-    { id: "EA-DEMO-10", flat: 10, membership: "110", name: "MR. Anil Sampleman", floor: 2, email: "demo.member10@example.com", phone: "+91 99999 00010", alternatePhone: "+91 88888 00010", parking: "P-010", ownership: "Owner", status: "Active", committee: null, vehicleNumber: "DL-XX-1010" },
-    { id: "EA-DEMO-11", flat: 111, membership: "111", name: "ADMIN Testaccount", floor: 0, email: "admin@example.com", phone: "+91 99999 00111", alternatePhone: null, parking: "P-111", ownership: "Owner", status: "Active", committee: null, vehicleNumber: null },
-    { id: "EA-DEMO-12", flat: 12, membership: null, name: "MRS. Demo Resident", floor: 3, email: null, phone: null, alternatePhone: null, parking: null, ownership: "Owner", status: "Inactive", committee: null, vehicleNumber: null },
+    { id: "EA-DEMO-01", flat: 1, membership: "101", name: "MR. Arjun Demo", floor: 0, email: "demo.member1@example.com", phone: "+91 99999 00001", alternatePhone: null, ownership: "Owner", status: "Active", committee: "President", vehicleNumber: "DL-XX-1001" },
+    { id: "EA-DEMO-02", flat: 2, membership: null, name: "MRS. Priya Sample", floor: 0, email: null, phone: null, alternatePhone: null, ownership: "Owner", status: "Active", committee: null, vehicleNumber: null },
+    { id: "EA-DEMO-03", flat: 3, membership: "103", name: "MR. Ravi Placeholder", floor: 0, email: null, phone: "+91 99999 00003", alternatePhone: null, ownership: "Owner", status: "Active", committee: null, vehicleNumber: null },
+    { id: "EA-DEMO-04", flat: 4, membership: "104", name: "MRS. Sunita Testcase", floor: 0, email: "demo.member4@example.com", phone: "+91 99999 00004", alternatePhone: null, ownership: "Owner", status: "Active", committee: "Secretary", vehicleNumber: "DL-XX-1004" },
+    { id: "EA-DEMO-05", flat: 5, membership: null, name: "MR. Amit Mockdata", floor: 0, email: null, phone: null, alternatePhone: null, ownership: "Tenant", status: "Active", committee: null, vehicleNumber: null },
+    { id: "EA-DEMO-06", flat: 6, membership: "106", name: "SMT. Kavita Sampleset", floor: 1, email: "demo.member6@example.com", phone: "+91 99999 00006", alternatePhone: null, ownership: "Owner", status: "Active", committee: "Treasurer", vehicleNumber: "DL-XX-1006" },
+    { id: "EA-DEMO-07", flat: 7, membership: "107", name: "MR. Suresh Demouser", floor: 1, email: null, phone: "+91 99999 00007", alternatePhone: null, ownership: "Owner (Joint)", status: "Active", committee: null, vehicleNumber: null },
+    { id: "EA-DEMO-08", flat: 8, membership: null, name: "MR. Vikram Testflat", floor: 1, email: "demo.member8@example.com", phone: null, alternatePhone: null, ownership: "Owner", status: "Active", committee: "Vice-President", vehicleNumber: "DL-XX-1008" },
+    { id: "EA-DEMO-09", flat: 9, membership: "109", name: "MS. Nisha Demoname", floor: 2, email: null, phone: null, alternatePhone: null, ownership: "Tenant", status: "Active", committee: null, vehicleNumber: null },
+    { id: "EA-DEMO-10", flat: 10, membership: "110", name: "MR. Anil Sampleman", floor: 2, email: "demo.member10@example.com", phone: "+91 99999 00010", alternatePhone: "+91 88888 00010", ownership: "Owner", status: "Active", committee: null, vehicleNumber: "DL-XX-1010" },
+    { id: "EA-DEMO-11", flat: 111, membership: "111", name: "ADMIN Testaccount", floor: 0, email: "admin@example.com", phone: "+91 99999 00111", alternatePhone: null, ownership: "Owner", status: "Active", committee: null, vehicleNumber: null },
+    { id: "EA-DEMO-12", flat: 12, membership: null, name: "MRS. Demo Resident", floor: 3, email: null, phone: null, alternatePhone: null, ownership: "Owner", status: "Inactive", committee: null, vehicleNumber: null },
   ]
 };
 
 async function loadStore(): Promise<LocalStore> {
   const existing = readStore();
-  if (existing) return migrateStore(existing);
+  const seed = await loadSeed();
+  if (existing) return migrateStore(existing, seed);
 
-  let seed: typeof DEMO_SEED = DEMO_SEED;
-  try {
-    const res = await fetch("/api/local/seed", { cache: "no-store" });
-    if (res.ok) seed = await res.json();
-  } catch {
-    // Static deployment (e.g. GitHub Pages) — API unavailable, using bundled demo data
-  }
   const members = (seed.members || []).map(normalizeMember) as LocalMember[];
   const store: LocalStore = {
     version: CURRENT_VERSION,
     society: seed.society,
     members,
-    credentials: members.map((member) => ({
-      username: String(member.flatNo),
-      flatNo: member.flatNo,
-      password: member.flatNo === 111 ? "admin4321" : "admin123",
-      roles: member.flatNo === 111 ? ["member", "admin"] : ["member"]
-    })),
+    credentials: makeCredentials(members),
     events: defaultEvents,
-    documents: [],
-    records: recordCategories.map(([key, label, defaultVisibility, description]) => ({
-      key,
-      label,
-      defaultVisibility,
-      description
-    })),
+    documents: seed.documents || [],
+    shareCertificateRegister: null,
+    records: makeRecordCategories(),
     complaintCategories: [
       "Maintenance",
       "Water",
       "Electricity",
       "Lift",
       "Security",
-      "Parking",
       "Cleanliness",
       "Billing/accounts",
       "Structural/repair",
@@ -377,22 +401,81 @@ async function loadStore(): Promise<LocalStore> {
     reminders: makeRemindersForMembers(members),
     dues: makeDuesForMembers(members),
     agms: defaultAgms,
-    changeRequests: []
+    changeRequests: [],
+    auditLogs: [
+      makeAuditLog({
+        action: "system.seeded",
+        targetType: "system",
+        targetLabel: "Local portal data",
+        details: "Initial local store created from uploaded member list and default records.",
+        actorRole: "system"
+      })
+    ]
   };
   writeStore(store);
   return store;
 }
 
-function migrateStore(store: LocalStore): LocalStore {
+async function loadSeed(): Promise<typeof DEMO_SEED> {
+  let seed: typeof DEMO_SEED = DEMO_SEED;
+  try {
+    const res = await fetch("/api/local/seed", { cache: "no-store" });
+    if (res.ok) seed = await res.json();
+  } catch {
+    // Static deployment (e.g. GitHub Pages) — API unavailable, using bundled demo data
+  }
+  return seed;
+}
+
+function migrateStore(store: LocalStore, seed: typeof DEMO_SEED): LocalStore {
   let changed = false;
   const next = { ...store } as LocalStore;
+  if (store.version < 4 && seed.members?.length) {
+    next.members = seed.members.map(normalizeMember);
+    next.credentials = makeCredentials(next.members);
+    next.reminders = makeRemindersForMembers(next.members);
+    next.dues = makeDuesForMembers(next.members);
+    changed = true;
+  } else if (store.version < 5) {
+    next.credentials = makeCredentials(next.members || []);
+    if (seed.documents?.length && (!next.documents || next.documents.length === 0)) {
+      next.documents = seed.documents;
+    }
+    changed = true;
+  } else {
+    next.members = (next.members || []).map((member) => ({
+      ...member,
+      committeeRole: MC_ROLES_BY_FLAT[member.flatNo] || member.committeeRole || null,
+      parkingSlot: null
+    }));
+    next.credentials = makeCredentials(next.members);
+  }
   if (!Array.isArray(next.documents)) {
     next.documents = [];
     changed = true;
   }
+  const mergedDocuments = mergeSeedDocuments(next.documents, seed.documents || []);
+  if (mergedDocuments.length !== next.documents.length) {
+    next.documents = mergedDocuments;
+    changed = true;
+  }
+  if ((next as Partial<LocalStore>).shareCertificateRegister === undefined) {
+    next.shareCertificateRegister = seed.shareCertificateRegister || null;
+    changed = true;
+  }
+  if (!next.shareCertificateRegister && seed.shareCertificateRegister) {
+    next.shareCertificateRegister = seed.shareCertificateRegister;
+    changed = true;
+  }
+  next.records = makeRecordCategories();
   if (!Array.isArray(next.notices)) {
     next.notices = defaultNotices;
     changed = true;
+  } else {
+    next.notices = next.notices.map((notice) => ({
+      ...notice,
+      targetFlatNos: notice.targetFlatNos === undefined ? null : notice.targetFlatNos
+    }));
   }
   if (!Array.isArray(next.reminders)) {
     next.reminders = makeRemindersForMembers(next.members || []);
@@ -410,12 +493,108 @@ function migrateStore(store: LocalStore): LocalStore {
     next.changeRequests = [];
     changed = true;
   }
+  if (!Array.isArray(next.auditLogs)) {
+    next.auditLogs = [
+      makeAuditLog({
+        action: "system.migrated",
+        targetType: "system",
+        targetLabel: "Local portal data",
+        details: "Audit timeline enabled for local admin review.",
+        actorRole: "system"
+      })
+    ];
+    changed = true;
+  }
   if (next.version !== CURRENT_VERSION) {
     next.version = CURRENT_VERSION;
     changed = true;
   }
   if (changed) writeStore(next);
   return next;
+}
+
+function mergeSeedDocuments(current: LocalDocument[], seed: LocalDocument[]) {
+  if (!seed.length) return current;
+  const existing = new Set(current.map((document) => document.id));
+  const missing = seed.filter((document) => !existing.has(document.id));
+  return missing.length ? [...missing, ...current] : current;
+}
+
+function makeAuditLog(input: {
+  action: string;
+  targetType: string;
+  targetLabel: string;
+  details: string;
+  actorRole?: LocalRole | "system";
+}): LocalAuditLog {
+  const session = getSession();
+  return {
+    id: `log-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    actorUsername: session?.username || "system",
+    actorFlatNo: session?.flatNo || null,
+    actorRole: input.actorRole || session?.activeRole || "system",
+    action: input.action,
+    targetType: input.targetType,
+    targetLabel: input.targetLabel,
+    details: input.details,
+    createdAt: new Date().toISOString()
+  };
+}
+
+function appendAudit(store: LocalStore, input: Parameters<typeof makeAuditLog>[0]) {
+  store.auditLogs = [makeAuditLog(input), ...(store.auditLogs || [])].slice(0, 500);
+}
+
+function makeRecordCategories() {
+  return recordCategories.map(([key, label, defaultVisibility, description]) => ({
+    key,
+    label,
+    defaultVisibility,
+    description
+  }));
+}
+
+function makeCredentials(members: LocalMember[]): LocalCredential[] {
+  return members.map((member) => {
+    const roles: LocalRole[] = member.committeeRole ? ["member", "admin"] : ["member"];
+    const mobile = primaryMobile(member);
+    const membership = member.membershipNo?.trim();
+    if (roles.includes("admin")) {
+      const suffix = mobile?.slice(-4) || String(member.flatNo).padStart(3, "0");
+      return {
+        username: `mc${member.flatNo}`,
+        flatNo: member.flatNo,
+        password: `MC@${member.flatNo}${suffix}`,
+        roles,
+        isGeneratedFallback: true,
+        note: `${member.committeeRole} account. Share directly with the MC member.`
+      };
+    }
+    return {
+      username: mobile || `flat${member.flatNo}`,
+      flatNo: member.flatNo,
+      password: membership || `EA@${String(member.flatNo).padStart(3, "0")}`,
+      roles,
+      isGeneratedFallback: !mobile || !membership,
+      note: !mobile && !membership
+        ? "Missing mobile and membership number; generated fallback credentials."
+        : !mobile
+          ? "Missing mobile number; generated fallback username."
+          : !membership
+            ? "Missing membership number; generated fallback password."
+            : "Initial username is registered mobile; initial password is membership number."
+    };
+  });
+}
+
+function primaryMobile(member: LocalMember) {
+  return firstTenDigitNumber(member.phone) || firstTenDigitNumber(member.alternatePhone);
+}
+
+function firstTenDigitNumber(value: string | null) {
+  const digits = value?.replace(/\D/g, "") || "";
+  if (digits.length < 10) return null;
+  return digits.slice(0, 10);
 }
 
 export function readStore(): LocalStore | null {
@@ -430,9 +609,10 @@ export function writeStore(store: LocalStore) {
 
 export async function loginLocal(username: string, password: string): Promise<LocalSession> {
   const store = await ensureLocalStore();
-  const credential = store.credentials.find((item) => item.username === username.trim());
-  if (!credential || credential.password !== password) {
-    throw new Error("Invalid flat number or password.");
+  const normalizedUsername = username.trim();
+  const credential = store.credentials.find((item) => item.username === normalizedUsername && item.password === password);
+  if (!credential) {
+    throw new Error("Invalid username or password.");
   }
   const session: LocalSession = {
     username: credential.username,
@@ -542,6 +722,12 @@ export function memberForSession(store: LocalStore, session: LocalSession | null
 export async function updateMember(member: LocalMember) {
   const store = await ensureLocalStore();
   store.members = store.members.map((item) => item.id === member.id ? member : item);
+  appendAudit(store, {
+    action: "member.updated",
+    targetType: "member",
+    targetLabel: `Flat ${member.flatNo}`,
+    details: "Member profile details were updated."
+  });
   writeStore(store);
   return member;
 }
@@ -549,6 +735,12 @@ export async function updateMember(member: LocalMember) {
 export async function updateSociety(society: LocalStore["society"]) {
   const store = await ensureLocalStore();
   store.society = society;
+  appendAudit(store, {
+    action: "society.updated",
+    targetType: "society",
+    targetLabel: society.name,
+    details: "Society profile settings were updated."
+  });
   writeStore(store);
   return society;
 }
@@ -557,6 +749,12 @@ export async function addEvent(event: Omit<LocalEvent, "id">) {
   const store = await ensureLocalStore();
   const next = { ...event, id: `evt-${Date.now()}` };
   store.events = [...store.events, next];
+  appendAudit(store, {
+    action: "event.created",
+    targetType: "event",
+    targetLabel: next.title,
+    details: `${next.visibility} event scheduled for ${next.date}.`
+  });
   writeStore(store);
   return next;
 }
@@ -569,6 +767,51 @@ export async function addDocument(document: Omit<LocalDocument, "id" | "uploaded
     uploadedAt: new Date().toISOString()
   };
   store.documents = [next, ...(store.documents || [])];
+  appendAudit(store, {
+    action: "document.uploaded",
+    targetType: "document",
+    targetLabel: next.title,
+    details: `${next.fileName} uploaded as ${next.category} with ${next.visibility} visibility.`
+  });
+  writeStore(store);
+  return next;
+}
+
+export async function addNotice(notice: Omit<LocalNotice, "id" | "date" | "targetFlatNos"> & { date?: string; targetFlatNos?: number[] | null }) {
+  const store = await ensureLocalStore();
+  const next: LocalNotice = {
+    ...notice,
+    id: `ntc-${Date.now()}`,
+    date: notice.date || new Date().toISOString().slice(0, 10),
+    targetFlatNos: notice.targetFlatNos ?? null
+  };
+  store.notices = [next, ...(store.notices || [])];
+  appendAudit(store, {
+    action: "notice.published",
+    targetType: "notice",
+    targetLabel: next.title,
+    details: next.targetFlatNos?.length
+      ? `Targeted to flats ${next.targetFlatNos.join(", ")}.`
+      : "Published to all members."
+  });
+  writeStore(store);
+  return next;
+}
+
+export async function saveShareCertificateRegister(input: Omit<LocalShareCertificateRegister, "id" | "uploadedAt">) {
+  const store = await ensureLocalStore();
+  const next: LocalShareCertificateRegister = {
+    ...input,
+    id: `share-cert-${Date.now()}`,
+    uploadedAt: new Date().toISOString()
+  };
+  store.shareCertificateRegister = next;
+  appendAudit(store, {
+    action: "share_certificates.imported",
+    targetType: "share_certificate_register",
+    targetLabel: input.fileName,
+    details: `${next.rows.length} row(s) imported for member view-only access.`
+  });
   writeStore(store);
   return next;
 }
@@ -585,6 +828,12 @@ export function sortedNotices(store: LocalStore): LocalNotice[] {
   return [...(store.notices || [])].sort((a, b) => {
     if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
     return new Date(b.date).getTime() - new Date(a.date).getTime();
+  });
+}
+
+export function noticesForFlat(store: LocalStore, flatNo: number): LocalNotice[] {
+  return sortedNotices(store).filter((notice) => {
+    return !notice.targetFlatNos?.length || notice.targetFlatNos.includes(flatNo);
   });
 }
 
@@ -609,6 +858,12 @@ export async function addChangeRequest(input: Omit<ChangeRequest, "id" | "status
     createdAt: new Date().toISOString()
   };
   store.changeRequests = [next, ...(store.changeRequests || [])];
+  appendAudit(store, {
+    action: "change_request.created",
+    targetType: "change_request",
+    targetLabel: `Flat ${next.flatNo} - ${next.field}`,
+    details: `Requested change from "${next.currentValue}" to "${next.requestedValue}".`
+  });
   writeStore(store);
   return next;
 }
@@ -631,23 +886,26 @@ export function visibleDocuments(store: LocalStore, role: LocalRole) {
 }
 
 function normalizeMember(member: any): LocalMember {
+  const flatNo = Number(member.flat ?? member.flatNo);
+  const rawVehicle = member.vehicleNumber ?? member.cars ?? null;
+  const vehicleNumber = rawVehicle && !/^no\s*car$/i.test(String(rawVehicle)) ? String(rawVehicle) : null;
   return {
-    id: member.id,
-    flatNo: member.flat,
+    id: member.id || `EA-${String(flatNo).padStart(4, "0")}`,
+    flatNo,
     membershipNo: member.membership,
-    block: "Main",
+    block: member.block || "Main",
     floor: member.floor ?? null,
     name: member.name,
-    fatherSpouseName: null,
+    fatherSpouseName: member.fatherSpouseName ?? member.father ?? null,
     email: member.email,
     phone: member.phone,
     alternatePhone: member.alternatePhone,
     ownership: member.ownership || "Owner",
     status: member.status || "Active",
     dateOfMembership: null,
-    parkingSlot: member.parking,
-    vehicleNumber: member.vehicleNumber,
+    parkingSlot: null,
+    vehicleNumber,
     remarks: member.deceased ? "Marked deceased in imported member list" : null,
-    committeeRole: member.committee
+    committeeRole: MC_ROLES_BY_FLAT[flatNo] || member.committee || null
   };
 }

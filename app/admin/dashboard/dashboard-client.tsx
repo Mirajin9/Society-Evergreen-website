@@ -10,7 +10,7 @@ function missingCount(members: LocalMember[], field: keyof LocalMember) {
 }
 
 function completeness(member: LocalMember) {
-  const fields: (keyof LocalMember)[] = ["phone", "email", "membershipNo", "parkingSlot"];
+  const fields: (keyof LocalMember)[] = ["phone", "email", "membershipNo", "fatherSpouseName"];
   const filled = fields.filter((f) => !!member[f]).length;
   return Math.round((filled / fields.length) * 100);
 }
@@ -54,7 +54,7 @@ export function AdminDashboardClient() {
   const missingPhone = missingCount(members, "phone");
   const missingEmail = missingCount(members, "email");
   const missingMembership = missingCount(members, "membershipNo");
-  const missingParking = missingCount(members, "parkingSlot");
+  const missingFather = missingCount(members, "fatherSpouseName");
   const avgCompleteness = Math.round(members.reduce((s, m) => s + completeness(m), 0) / members.length);
   const { lastAgm, nextAgm, lastAgmInFY, daysToDeadline, agmDeadline } = agmStatus(events);
   const upcomingEvents = events
@@ -162,8 +162,7 @@ export function AdminDashboardClient() {
                 { label: "Phone number", missing: missingPhone, total, icon: "phone" },
                 { label: "Email address", missing: missingEmail, total, icon: "mail" },
                 { label: "Membership no.", missing: missingMembership, total, icon: "doc" },
-                { label: "Parking slot", missing: missingParking, total, icon: "parking" },
-                { label: "Father / Spouse name", missing: total, total, icon: "user" }
+                { label: "Father / Spouse name", missing: missingFather, total, icon: "user" }
               ].map((row) => (
                 <div key={row.label}>
                   <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6, fontSize: 13 }}>

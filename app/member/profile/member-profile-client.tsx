@@ -14,8 +14,7 @@ const EDITABLE_FIELDS = [
   { key: "phone", label: "Phone" },
   { key: "alternatePhone", label: "Alternate phone" },
   { key: "membershipNo", label: "Membership number" },
-  { key: "parkingSlot", label: "Parking slot" },
-  { key: "vehicleNumber", label: "Vehicle number" },
+  { key: "vehicleNumber", label: "Vehicle number(s)" },
   { key: "fatherSpouseName", label: "Father / Spouse name" }
 ] as const;
 
@@ -144,8 +143,7 @@ export function MemberProfileClient() {
               <Row label="Ownership" value={member.ownership} />
               <Row label="Status" value={member.status} />
               <Row label="Floor" value={member.floor != null ? member.floor : null} />
-              <Row label="Parking slot" value={member.parkingSlot} />
-              <Row label="Vehicle number" value={member.vehicleNumber} />
+              <Row label="Vehicle number(s)" value={member.vehicleNumber} />
               <Row label="Father / Spouse name" value={member.fatherSpouseName} />
             </div>
             <div style={{ marginTop: 18, padding: "10px 14px", background: "var(--navy-light)", borderRadius: 8, fontSize: 12.5, color: "var(--navy)" }}>

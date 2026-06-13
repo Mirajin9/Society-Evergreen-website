@@ -52,14 +52,13 @@ create trigger members_derive_floor before insert or update on public.members
 -- Returns 0..100 for a member row based on REQUIRED_FIELDS.
 create or replace function public.member_completeness(m public.members) returns int as $$
 declare
-  total int := 5;
+  total int := 4;
   filled int := 0;
 begin
   if m.email is not null and m.email <> '' then filled := filled + 1; end if;
   if m.phone is not null and m.phone <> '' then filled := filled + 1; end if;
   if m.membership_no is not null and m.membership_no <> '' then filled := filled + 1; end if;
   if m.ownership is not null then filled := filled + 1; end if;
-  if m.parking_slot is not null and m.parking_slot <> '' then filled := filled + 1; end if;
   return round((filled::numeric / total) * 100);
 end;
 $$ language plpgsql immutable;
@@ -158,7 +157,7 @@ begin
     if new.email is distinct from old.email
        or new.phone is distinct from old.phone
        or new.ownership is distinct from old.ownership
-       or new.parking_slot is distinct from old.parking_slot
+       or new.vehicle_number is distinct from old.vehicle_number
        or new.status is distinct from old.status then
       perform public.log_activity('member.updated', 'members', new.id, 'Flat ' || new.flat_no);
     end if;
@@ -201,7 +200,6 @@ create or replace view public.v_data_completion as
     count(*) filter (where email is not null and email <> '') as with_email,
     count(*) filter (where phone is not null and phone <> '') as with_phone,
     count(*) filter (where membership_no is not null)         as with_membership,
-    count(*) filter (where parking_slot is not null)          as with_parking,
     count(*) filter (where ownership is not null)             as with_ownership,
     count(*) filter (where public.member_completeness(members.*) = 100) as full_profiles,
     count(*) filter (where status = 'deceased')               as deceased

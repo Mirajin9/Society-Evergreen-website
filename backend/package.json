@@ -6,6 +6,7 @@
   "description": "Backend for the Evergreen Apartment portal — schema, API, jobs, scripts.",
   "scripts": {
     "import:members": "tsx scripts/import-members.ts",
+    "upload:documents": "tsx scripts/upload-documents.ts",
     "db:reset": "echo 'Run schema/*.sql in order against your Supabase database.'",
     "db:dump": "supabase db dump --schema public > dump-$(date +%Y%m%d).sql",
     "functions:deploy": "supabase functions deploy dispatch-reminders",

@@ -12,7 +12,6 @@ const ALLOWED = new Set<keyof UpdateMemberInput>([
   "alternate_phone",
   "ownership",
   "status",
-  "parking_slot",
   "vehicle_number",
   "vehicle_make_model",
   "notes"

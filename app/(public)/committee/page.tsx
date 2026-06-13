@@ -7,54 +7,45 @@ export const metadata = {
 
 const MC_MEMBERS = [
   {
-    name: "To be updated",
+    name: "Mr. Jugal Kishore",
     designation: "President",
     phone: "Contact society office",
     email: null,
     displayOrder: 1
   },
   {
-    name: "To be updated",
-    designation: "Vice-President",
+    name: "Mr. Saurabh Sharma",
+    designation: "Vice President",
     phone: "Contact society office",
     email: null,
     displayOrder: 2
   },
   {
-    name: "To be updated",
+    name: "Mrs. Sudha Sharma",
     designation: "Secretary",
     phone: "Contact society office",
     email: null,
     displayOrder: 3
   },
   {
-    name: "To be updated",
+    name: "Ms. Santosh",
     designation: "Treasurer",
     phone: "Contact society office",
     email: null,
     displayOrder: 4
   },
   {
-    name: "To be updated",
+    name: "Mr. Suneet Dargan",
     designation: "MC Member",
     phone: "Contact society office",
     email: null,
     displayOrder: 5
-  },
-  {
-    name: "To be updated",
-    designation: "MC Member",
-    phone: "Contact society office",
-    email: null,
-    displayOrder: 6
   }
 ];
 
-const ROLE_ORDER = ["President", "Vice-President", "Secretary", "Treasurer", "MC Member"];
-
 function roleColor(designation: string) {
   if (designation === "President") return "#FF9933";
-  if (designation === "Vice-President") return "#138808";
+  if (designation === "Vice President") return "#138808";
   if (designation === "Secretary") return "#1A3A6B";
   if (designation === "Treasurer") return "#6B2A1A";
   return "var(--muted)";
@@ -82,14 +73,6 @@ export default function CommitteePage() {
           under the Delhi Cooperative Societies Act, 2003. The MC is responsible for the day-to-day
           administration, maintenance, and compliance of the society.
         </p>
-
-        {/* Notice about data */}
-        <div style={{ display: "flex", alignItems: "flex-start", gap: 14, padding: "14px 20px", background: "var(--saffron-light)", border: "1px solid var(--saffron-mid)", borderRadius: 10, marginBottom: 32 }}>
-          <Icon name="bell" size={18} color="var(--saffron)" />
-          <div style={{ fontSize: 13.5, color: "var(--navy)", lineHeight: 1.6 }}>
-            The committee member details will be updated by the admin. Contact the society office for current committee information.
-          </div>
-        </div>
 
         <div className="committee-grid">
           {sorted.map((member, i) => (

@@ -14,13 +14,16 @@ alter table public.events                enable row level security;
 alter table public.documents             enable row level security;
 alter table public.document_access       enable row level security;
 alter table public.member_documents      enable row level security;
+alter table public.share_certificate_uploads enable row level security;
+alter table public.share_certificate_rows    enable row level security;
 alter table public.complaints            enable row level security;
 alter table public.complaint_messages    enable row level security;
 alter table public.reminders             enable row level security;
+alter table public.sms_messages          enable row level security;
+alter table public.otp_challenges        enable row level security;
 alter table public.activity_log          enable row level security;
 alter table public.meetings              enable row level security;
 alter table public.meeting_documents     enable row level security;
-alter table public.parking_slots         enable row level security;
 
 -- ─── Society (single row, read by anyone, write by admin) ─────────────────
 create policy society_read_anyone on public.society
@@ -88,7 +91,16 @@ create policy notices_read on public.notices
     and published_at is not null and published_at <= now()
     and (
       visibility = 'public'
-      or (visibility = 'members'   and auth.uid() is not null)
+      or (visibility = 'members'   and auth.uid() is not null and (
+        public.is_admin()
+        or coalesce(jsonb_array_length(meta -> 'target_flat_nos'), 0) = 0
+        or exists (
+          select 1 from jsonb_array_elements_text(meta -> 'target_flat_nos') target(flat_no)
+          where target.flat_no::int = (
+            select flat_no from public.members where id = public.current_member_id()
+          )
+        )
+      ))
       or (visibility = 'committee' and public.is_committee_or_admin())
       or (visibility = 'admin'     and public.is_admin())
     )
@@ -162,6 +174,15 @@ create policy member_docs_write_admin on public.member_documents
   using (public.is_admin())
   with check (public.is_admin());
 
+-- Share certificate register: members can read parsed rows only. Upload
+-- metadata/source files stay admin-only so there is no member download path.
+create policy share_cert_rows_read_members on public.share_certificate_rows
+  for select to authenticated using (true);
+create policy share_cert_rows_admin_all on public.share_certificate_rows
+  for all to authenticated using (public.is_admin()) with check (public.is_admin());
+create policy share_cert_uploads_admin_all on public.share_certificate_uploads
+  for all to authenticated using (public.is_admin()) with check (public.is_admin());
+
 -- ─── Complaints ───────────────────────────────────────────────────────────
 -- A member sees only their own complaints. Admin sees all.
 create policy complaints_read on public.complaints
@@ -213,6 +234,11 @@ create policy reminders_admin on public.reminders
   using (public.is_admin())
   with check (public.is_admin());
 
+create policy sms_messages_admin on public.sms_messages
+  for all to authenticated using (public.is_admin()) with check (public.is_admin());
+create policy otp_challenges_admin on public.otp_challenges
+  for all to authenticated using (public.is_admin()) with check (public.is_admin());
+
 -- ─── Activity log (read-only for admins) ──────────────────────────────────
 create policy activity_log_admin_read on public.activity_log
   for select to authenticated
@@ -230,10 +256,4 @@ create policy meetings_write_admin on public.meetings
 create policy meeting_docs_read on public.meeting_documents
   for select to authenticated using (true);
 create policy meeting_docs_write_admin on public.meeting_documents
-  for all to authenticated using (public.is_admin()) with check (public.is_admin());
-
--- ─── Parking ──────────────────────────────────────────────────────────────
-create policy parking_read on public.parking_slots
-  for select to authenticated using (true);
-create policy parking_write_admin on public.parking_slots
   for all to authenticated using (public.is_admin()) with check (public.is_admin());

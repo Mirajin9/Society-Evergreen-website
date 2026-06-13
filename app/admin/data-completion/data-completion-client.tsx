@@ -5,13 +5,12 @@ import Link from "next/link";
 import { Icon } from "@/app/components/ui";
 import { ensureLocalStore, type LocalMember } from "@/app/lib/local-store";
 
-type FilterKey = "all" | "missing_phone" | "missing_email" | "missing_membership" | "missing_parking" | "missing_father";
+type FilterKey = "all" | "missing_phone" | "missing_email" | "missing_membership" | "missing_father";
 
 const FIELDS: Array<{ key: keyof LocalMember | "fatherSpouseName"; label: string; short: string; icon: string }> = [
   { key: "phone",           label: "Phone",          short: "Phone",    icon: "phone" },
   { key: "email",           label: "Email",           short: "Email",    icon: "mail"  },
   { key: "membershipNo",    label: "Membership No.",  short: "Mem. No.", icon: "doc"   },
-  { key: "parkingSlot",     label: "Parking Slot",   short: "Parking",  icon: "parking" },
   { key: "fatherSpouseName",label: "Father/Spouse",  short: "F/S Name", icon: "user"  }
 ];
 
@@ -20,7 +19,7 @@ function pct(filled: number, total: number) {
 }
 
 function memberCompleteness(m: LocalMember) {
-  const fields: (keyof LocalMember)[] = ["phone", "email", "membershipNo", "parkingSlot", "fatherSpouseName"];
+  const fields: (keyof LocalMember)[] = ["phone", "email", "membershipNo", "fatherSpouseName"];
   const filled = fields.filter((f) => !!m[f]).length;
   return Math.round((filled / fields.length) * 100);
 }
@@ -64,7 +63,6 @@ export function DataCompletionClient() {
       missingPhone:       members.filter((m) => !m.phone).length,
       missingEmail:       members.filter((m) => !m.email).length,
       missingMembership:  members.filter((m) => !m.membershipNo).length,
-      missingParking:     members.filter((m) => !m.parkingSlot).length,
       missingFather:      members.filter((m) => !m.fatherSpouseName).length,
     };
   }, [members]);
@@ -74,7 +72,6 @@ export function DataCompletionClient() {
     if (filter === "missing_phone")      list = list.filter((m) => !m.phone);
     if (filter === "missing_email")      list = list.filter((m) => !m.email);
     if (filter === "missing_membership") list = list.filter((m) => !m.membershipNo);
-    if (filter === "missing_parking")    list = list.filter((m) => !m.parkingSlot);
     if (filter === "missing_father")     list = list.filter((m) => !m.fatherSpouseName);
     if (search.trim()) {
       const q = search.toLowerCase();
@@ -91,14 +88,13 @@ export function DataCompletionClient() {
 
   if (loading) return <div className="loading-pad">Loading member data...</div>;
 
-  const { total, missingPhone, missingEmail, missingMembership, missingParking, missingFather } = stats;
+  const { total, missingPhone, missingEmail, missingMembership, missingFather } = stats;
 
   const FILTERS: Array<{ key: FilterKey; label: string; count: number; color: string }> = [
     { key: "all",                label: "All members",       count: total,            color: "var(--ink)" },
     { key: "missing_phone",      label: "Missing phone",     count: missingPhone,     color: "var(--rust)" },
     { key: "missing_email",      label: "Missing email",     count: missingEmail,     color: "var(--gold)" },
     { key: "missing_membership", label: "Missing mem. no.",  count: missingMembership,color: "var(--gold)" },
-    { key: "missing_parking",    label: "Missing parking",   count: missingParking,   color: "var(--muted)" },
     { key: "missing_father",     label: "Missing F/S name",  count: missingFather,    color: "var(--muted)" }
   ];
 
@@ -119,12 +115,11 @@ export function DataCompletionClient() {
       <div className="page-body" style={{ display: "flex", flexDirection: "column", gap: 20 }}>
 
         {/* Summary stats */}
-        <div className="grid" style={{ gridTemplateColumns: "repeat(5, 1fr)", gap: 12 }}>
+        <div className="grid" style={{ gridTemplateColumns: "repeat(4, 1fr)", gap: 12 }}>
           {[
             { label: "Phone missing",      missing: missingPhone,      icon: "phone",   color: "var(--rust)" },
             { label: "Email missing",      missing: missingEmail,       icon: "mail",    color: "var(--gold)" },
             { label: "Membership missing", missing: missingMembership,  icon: "doc",     color: "var(--gold)" },
-            { label: "Parking missing",    missing: missingParking,     icon: "parking", color: "var(--muted)" },
             { label: "F/S name missing",   missing: missingFather,      icon: "user",    color: "var(--muted)" }
           ].map((s) => (
             <div key={s.label} className="card" style={{ padding: "16px 18px" }}>
@@ -206,7 +201,6 @@ export function DataCompletionClient() {
                 <th style={{ width: 70, textAlign: "center" }}>Phone</th>
                 <th style={{ width: 70, textAlign: "center" }}>Email</th>
                 <th style={{ width: 90, textAlign: "center" }}>Mem. No.</th>
-                <th style={{ width: 80, textAlign: "center" }}>Parking</th>
                 <th style={{ width: 80, textAlign: "center" }}>F/S Name</th>
                 <th style={{ width: 90 }}>Complete</th>
                 <th style={{ width: 60 }}>Action</th>
@@ -240,11 +234,6 @@ export function DataCompletionClient() {
                     <td style={{ textAlign: "center" }}>
                       {m.membershipNo
                         ? <span className="mono" style={{ fontSize: 11.5 }}>{m.membershipNo}</span>
-                        : <Check ok={false} />}
-                    </td>
-                    <td style={{ textAlign: "center" }}>
-                      {m.parkingSlot
-                        ? <span style={{ fontSize: 12, fontFamily: "var(--font-mono)" }}>{m.parkingSlot}</span>
                         : <Check ok={false} />}
                     </td>
                     <td style={{ textAlign: "center" }}>

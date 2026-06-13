@@ -9,7 +9,6 @@ export const REQUIRED_FIELDS = [
   { key: 'phone',         label: 'Phone' },
   { key: 'membership_no', label: 'Membership No.' },
   { key: 'ownership',     label: 'Occupancy' },
-  { key: 'parking_slot',  label: 'Parking' },
 ] as const;
 
 export type RequiredFieldKey = (typeof REQUIRED_FIELDS)[number]['key'];

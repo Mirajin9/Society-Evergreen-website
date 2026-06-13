@@ -44,7 +44,7 @@ A single reference for every term used in code, schema, and conversations about 
 
 **Member document** — A private file belonging to one member (NOC, share certificate, ID proof). Lives in the `member-documents` bucket, scoped by member ID in the path.
 
-**Complaint** — A maintenance/security/parking issue raised by a member. Goes through statuses: `open → in_progress → resolved → closed` (or `awaiting_member` when admin needs info back).
+**Complaint** — A maintenance/security/cleanliness issue raised by a member. Goes through statuses: `open → in_progress → resolved → closed` (or `awaiting_member` when admin needs info back).
 
 **Reminder** — A scheduled email tied to an event or notice. The cron job picks up due rows from the `reminders` table and dispatches them.
 
@@ -56,7 +56,7 @@ A single reference for every term used in code, schema, and conversations about 
 
 ## Data quality
 
-**Completeness** — Percentage of the 5 required fields filled in for a member: email, phone, membership_no, ownership, parking_slot. 100% = "fully on file." Computed by `member_completeness(m)` in SQL and `memberCompleteness(m)` in TypeScript.
+**Completeness** — Percentage of the 4 required fields filled in for a member: email, phone, membership_no, ownership. 100% = "fully on file." Computed by `member_completeness(m)` in SQL and `memberCompleteness(m)` in TypeScript.
 
 **Login status** — Derived from members + users state:
 - `enabled`     — user account active, can sign in

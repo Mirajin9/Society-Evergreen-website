@@ -52,11 +52,11 @@ const TILES = [
     href: "/member/documents?cat=audit"
   },
   {
-    id: "parking",
-    icon: "parking",
-    title: "Parking Allocation",
-    desc: "Check the official parking slot allocation register for all flats.",
-    href: "/member/documents?cat=parking"
+    id: "share-certificates",
+    icon: "doc",
+    title: "Share Certificates",
+    desc: "View the MC-issued share certificate register after member login.",
+    href: "/member/share-certificates"
   },
   {
     id: "forms",
@@ -74,7 +74,7 @@ export default function HomePage() {
       <div className="notice-strip">
         <span className="ns-label">Notice</span>
         <span className="ns-text">
-          The society portal is now live. Members may log in using their registered mobile number. For access issues, contact the society office.
+          The society portal is now live. Members may log in using the username and password issued for their flat. For access issues, contact the society office.
         </span>
       </div>
 
@@ -91,7 +91,7 @@ export default function HomePage() {
         <div className="pub-hero-actions">
           <Link href="/login" className="hero-cta">
             <Icon name="lock" size={16} color="#fff" />
-            Login with Registered Mobile Number
+            Member Login
           </Link>
           <Link href="/about" className="hero-cta-ghost">
             About the Society <Icon name="arr_r" size={14} color="currentColor" />

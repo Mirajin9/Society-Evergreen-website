@@ -25,6 +25,9 @@ create index documents_category_idx on public.documents(category, document_date 
 create index documents_visibility_idx on public.documents(visibility, document_date desc);
 create index documents_linked_event_idx on public.documents(linked_event_id) where linked_event_id is not null;
 
+create index share_certificate_rows_upload_idx on public.share_certificate_rows(upload_id, row_no);
+create index share_certificate_rows_flat_idx on public.share_certificate_rows(flat_no) where flat_no is not null;
+
 -- Complaints: by member (for "my complaints"), by status (for admin queues), by date.
 create index complaints_member_idx on public.complaints(created_by_member, created_at desc);
 create index complaints_status_idx on public.complaints(status, created_at desc);
@@ -35,6 +38,10 @@ create index complaint_messages_thread_idx on public.complaint_messages(complain
 -- Reminders: the cron job hits this constantly.
 create index reminders_due_idx on public.reminders(dispatch_at) where status = 'queued';
 create index reminders_event_idx on public.reminders(event_id);
+
+create index sms_messages_status_idx on public.sms_messages(status, queued_at);
+create index sms_messages_member_idx on public.sms_messages(member_id, queued_at desc) where member_id is not null;
+create index otp_challenges_mobile_idx on public.otp_challenges(mobile, expires_at desc);
 
 -- Activity log: 90% of queries are the latest N items.
 create index activity_log_created_at_idx on public.activity_log(created_at desc);

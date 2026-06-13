@@ -87,7 +87,7 @@ When converting the prototype to a real Next.js + Supabase app, work through thi
 - **API**: `GET /api/meetings`
 
 ### `member/profile`
-- **Shows**: 4 tabs (Profile, Account, Notifications, Parking)
+- **Shows**: Profile, account, notifications, and registered vehicle details
 - **Reads**: `GET /api/me`
 - **Profile tab "Request profile update" → opens modal**:
   - For fields in `SELF_EDITABLE` (phone, alt phone, vehicle): `PATCH /api/me` with the changes — applied immediately
@@ -95,7 +95,7 @@ When converting the prototype to a real Next.js + Supabase app, work through thi
 - **Account tab → Change password**: `supabase.auth.updateUser({ password })` via browser SDK
 - **Account tab → Change email**: `supabase.auth.updateUser({ email })`; user receives confirmation link
 - **Notifications tab → toggle**: `PATCH /api/me` with new `notification_prefs` payload
-- **Parking tab → request slot change**: opens complaint with category=`parking`
+- Vehicle changes are handled through profile update requests or admin edit.
 
 ### `member/complaints`
 - **Shows**: KPIs · table of my complaints · selected complaint thread
@@ -179,12 +179,11 @@ When converting the prototype to a real Next.js + Supabase app, work through thi
 - **Shows**: filterable list of activity log entries
 - **API**: `GET /api/admin/activity?actor=…&action_kind=…&since_days=…`
 
-### `admin/parking`
-- **Shows**: KPI cards · table of allocated slots
-- **API**: 
-  - `GET /api/admin/parking-allocations`
-- **Edit pencil → modal**: `PATCH /api/admin/parking-slots/:slot_no { allocated_to_member_id, vehicle_number, … }`
-- **Waitlist add**: `POST /api/admin/parking-waitlist`
+### `admin/share-certificates`
+- **Shows**: Excel upload and parsed preview of MC-issued share certificates
+- **API**:
+  - `POST /api/admin/share-certificates/import`
+  - `GET /api/share-certificates`
 
 ### `admin/committee`
 - **Shows**: current MC roster

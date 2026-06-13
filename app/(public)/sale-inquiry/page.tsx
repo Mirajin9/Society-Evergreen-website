@@ -9,7 +9,7 @@ export const metadata = {
 const FACILITIES = [
   { icon: "shield", title: "24×7 Security", desc: "Round-the-clock security personnel at the society entrance with visitor management system." },
   { icon: "users", title: "MyGate App Access", desc: "Residents use the MyGate app for visitor pre-approval, staff tracking, and gate management." },
-  { icon: "parking", title: "Covered Parking", desc: "Dedicated parking slots allocated per flat. Visitor parking also available within the premises." },
+  { icon: "home", title: "Member Vehicle Records", desc: "The society maintains vehicle ownership records declared by members." },
   { icon: "leaf", title: "Green Surroundings", desc: "Landscaped common areas with trees and garden space maintained by the society." },
   { icon: "bell", title: "Temple", desc: "A small community temple within the society premises for residents." },
   { icon: "home", title: "Society Office", desc: "Active society office with staff available for maintenance requests and administrative matters." }
@@ -56,7 +56,7 @@ export default function SaleInquiryPage() {
               <li>Available across all 4 floors</li>
               <li>Majority of the 165 units</li>
               <li>Typically 2–3 BHK configuration</li>
-              <li>Allocated parking slot per flat</li>
+              <li>Member vehicle details maintained by the society</li>
               <li>Common society amenities access</li>
             </ul>
           </div>

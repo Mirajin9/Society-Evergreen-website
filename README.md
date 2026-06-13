@@ -54,7 +54,8 @@ member.jsx                ← Logged-in member pages (Dashboard, Calendar,
                             Complaints, Settings)
 admin.jsx                 ← Society Office admin pages (Dashboard, Members,
                             Data Completion, Calendar mgmt, Documents mgmt,
-                            Notices, Complaints, Activity Logs, Parking,
+                            Notices, Complaints, Activity Logs,
+                            Share Certificates,
                             Committee)
 app.jsx                   ← Router + role switching
 uploads/MEMBERS LIST.docx ← the original member list (kept for reference)
@@ -64,9 +65,9 @@ uploads/MEMBERS LIST.docx ← the original member list (kept for reference)
 
 **Public site** — Home, Notices & Circulars, Management Committee, Public Documents library, Calendar preview, Contact form (form posts a fake confirmation), Login.
 
-**Member portal** — Dashboard with KPIs and upcoming events, full month Calendar with event modal + attached documents, My Documents library with category filters, Profile with 4 tabs (Profile / Login & email / Notifications / Parking), Notices, Meeting Records, Complaints (full thread + new complaint modal), Settings.
+**Member portal** — Dashboard with KPIs and upcoming events, full month Calendar with event modal + attached documents, My Documents library with category filters, Profile with registered vehicle details, Share Certificates, Notices, Meeting Records, Complaints (full thread + new complaint modal), Settings.
 
-**Admin console** — Society overview with RCS compliance checklist, reminder queue, login-setup progress bar; the new **Data Completion** module; Member Management table with filters/search/edit modal; CSV import modal; Calendar Management with full event-creation modal (categories, visibility, doc attachments, reminders); Document Management with upload modal; Notices admin; Complaints admin; Activity Logs; Parking; Committee.
+**Admin console** — Society overview with RCS compliance checklist, reminder queue, login-setup progress bar; the new **Data Completion** module; Member Management table with filters/search/edit modal; CSV import modal; Calendar Management with full event-creation modal (categories, visibility, doc attachments, reminders); Document Management with upload modal; Share Certificate register upload; Notices admin; Complaints admin; Activity Logs; Committee.
 
 ### What's interactive (real React state)
 
@@ -104,7 +105,6 @@ Each member record (`MEMBERS` array in `data.jsx`) has these fields:
 | `email`          | **Missing for most** — fill in      | Required for login |
 | `phone`          | **Missing for many** — fill in      | Used for reminders |
 | `alternatePhone` | Optional                            | |
-| `parking`        | Slot number `P-001`…`P-165`         | ~78% on file in the mock |
 | `vehicleNumber`  | Optional                            | |
 | `ownership`      | Owner / Tenant / Joint / Vacant     | |
 | `status`         | Active / Deceased / Disputed        | |
@@ -117,14 +117,14 @@ Each member record (`MEMBERS` array in `data.jsx`) has these fields:
 
 This is the key insight: **you don't need everyone's data on day one.** The system is designed to ingest what you have, then incrementally fill in the rest:
 
-1. **Initial import** — you upload the docx (or a CSV) once. Every flat gets a row with at least `flat + name + membership`. Email/phone/parking are empty.
+1. **Initial import** — you upload the member Excel/CSV once. Every flat gets a row with at least `flat + name + membership`; email, phone and vehicle details can be filled in over time.
 2. **Admin Dashboard → Data Quality banner** shows you the gap — e.g. "97 members have no email on file."
 3. **Data Completion module** has three workflows:
    - **Import update sheet** — admin gets an Excel file from any source (your secretary's notebook, an RWA WhatsApp survey, etc), uploads it. System matches by `flat` and fills in blank fields without overwriting existing ones.
    - **Self-service invite** — for the members who *do* have an email, the system emails a one-time link. They land on a form, fill in their own missing fields, the record updates.
    - **Inline edit** — for stragglers (no email, won't respond), the admin opens the row and types in what they know.
-4. Each member has a **completeness %** computed live (5 required fields). A member becomes "fully on file" when all 5 are present.
-5. **Login is gated on email** — the system refuses to send a login invite to a member without an email. The Edit Member modal only shows the "Send invite" button after an email is filled in. This is the security guard.
+4. Each member has a **completeness %** computed live (4 required fields). A member becomes "fully on file" when all 4 are present.
+5. **Login is gated on registered mobile number** — the OTP system only accepts phone numbers on the member record.
 
 ### Role-based access (what the prototype enforces)
 

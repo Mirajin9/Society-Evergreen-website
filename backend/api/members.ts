@@ -105,7 +105,6 @@ export interface UpdateMemberInput {
   alternate_phone?: string | null;
   ownership?: OwnershipStatus;
   status?: MemberStatus;
-  parking_slot?: string | null;
   vehicle_number?: string | null;
   vehicle_make_model?: string | null;
   notes?: string | null;
@@ -196,7 +195,7 @@ export async function sendLoginInvite(
 // ─── Data completion report ───────────────────────────────────────────────
 export async function dataCompletionReport(
   supabase: SupabaseClient,
-  fieldFilter?: 'email' | 'phone' | 'membership_no' | 'ownership' | 'parking_slot'
+  fieldFilter?: 'email' | 'phone' | 'membership_no' | 'ownership'
 ): Promise<DataCompletionReport> {
   await requireAdmin(supabase);
 
@@ -205,7 +204,7 @@ export async function dataCompletionReport(
   if (!agg) throw new Error('v_data_completion view missing');
 
   // Pull all members for the missing list (sorted by flat).
-  let mq = supabase.from('members').select('id, flat_no, name, membership_no, email, phone, ownership, parking_slot, status')
+  let mq = supabase.from('members').select('id, flat_no, name, membership_no, email, phone, ownership, status')
     .is('deleted_at', null).neq('status', 'deceased').order('flat_no');
   if (fieldFilter) mq = mq.is(fieldFilter, null);
   const { data: members, error } = await mq;
@@ -227,7 +226,6 @@ export async function dataCompletionReport(
       { key: 'phone',      label: 'Phone',          filled: agg.with_phone,      missing: agg.total_members - agg.with_phone },
       { key: 'membership', label: 'Membership No.', filled: agg.with_membership, missing: agg.total_members - agg.with_membership },
       { key: 'ownership',  label: 'Occupancy',      filled: agg.with_ownership,  missing: agg.total_members - agg.with_ownership },
-      { key: 'parking',    label: 'Parking',        filled: agg.with_parking,    missing: agg.total_members - agg.with_parking },
     ],
     members_missing,
   };
@@ -267,7 +265,7 @@ export async function importMembers(
         ['email', 'email'], ['phone', 'phone'],
         ['alternate_email', 'alternate_email'], ['alternate_phone', 'alternate_phone'],
         ['father_spouse', 'father_spouse_name'],
-        ['parking', 'parking_slot'], ['vehicle', 'vehicle_number'],
+        ['vehicle', 'vehicle_number'],
       ];
       for (const [src, dst] of map) {
         const v = row[src];

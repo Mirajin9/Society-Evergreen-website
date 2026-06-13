@@ -35,7 +35,7 @@ const CATEGORIES = [
     title: "Other Reference Documents",
     items: [
       { title: "Maintenance Calculation Basis", desc: "Basis and methodology for society maintenance charge calculation", date: "Contact office" },
-      { title: "Parking Policy", desc: "Society policy on parking slot allocation and usage", date: "Contact office" },
+      { title: "Vehicle Update Form", desc: "Form for updating vehicle details maintained by the society", date: "Contact office" },
       { title: "Visitor & Security Guidelines", desc: "Society rules for visitors, security, and MyGate app access", date: "Contact office" }
     ]
   }

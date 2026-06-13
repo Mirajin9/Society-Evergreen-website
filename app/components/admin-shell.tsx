@@ -11,7 +11,9 @@ const ADMIN_LINKS = [
   { href: "/admin/data-completion", label: "Data Completion", icon: "chart" },
   { href: "/admin/committee", label: "Committee", icon: "shield" },
   { href: "/admin/calendar", label: "Calendar & Events", icon: "cal" },
+  { href: "/admin/notices", label: "Notices", icon: "bell" },
   { href: "/admin/records", label: "Records", icon: "folder" },
+  { href: "/admin/share-certificates", label: "Share Certificates", icon: "doc" },
   { href: "/admin/complaints", label: "Complaints", icon: "inbox" },
   { href: "/admin/society", label: "Society Profile", icon: "doc" },
   { href: "/admin/database", label: "Database", icon: "doc" }
