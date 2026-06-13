@@ -28,4 +28,4 @@ Thumbs.db
 .thumbnail
 
 # Local/raw uploads should not be published by default
-uploads/
+/uploads/

@@ -20,7 +20,7 @@ export async function GET() {
     });
   }
 
-  const source = await readFile(join(process.cwd(), "data.jsx"), "utf8");
+  const source = await readFile(join(/*turbopackIgnore: true*/ process.cwd(), "data.jsx"), "utf8");
   const membersMatch = source.match(/const MEMBERS = (\[[\s\S]*?\n\]);/);
   if (!membersMatch) {
     return NextResponse.json({ error: "Could not read prototype members" }, { status: 500 });
@@ -83,7 +83,7 @@ async function readFirstExisting(names: string[]) {
   let lastError: unknown;
   for (const name of names) {
     try {
-      return await readFile(join(process.cwd(), "uploads", name));
+      return await readFile(join(/*turbopackIgnore: true*/ process.cwd(), "uploads", name));
     } catch (error) {
       lastError = error;
     }
@@ -93,7 +93,7 @@ async function readFirstExisting(names: string[]) {
 
 async function readUploadedDocuments() {
   try {
-    const dir = join(process.cwd(), "uploads");
+    const dir = await firstExistingDir(["public/files", "uploads"]);
     const files = await readdir(dir);
     const docs = await Promise.all(files
       .filter((name) => /\.(pdf|docx)$/i.test(name))
@@ -109,7 +109,7 @@ async function readUploadedDocuments() {
           fileName: name,
           mimeType: mimeTypeFromFile(name),
           sizeBytes: info.size,
-          dataUrl: `/api/local/uploads?name=${encodeURIComponent(name)}`,
+          dataUrl: `/files/${encodeURIComponent(name)}`,
           uploadedAt: info.mtime.toISOString()
         };
       }));
@@ -122,11 +122,11 @@ async function readUploadedDocuments() {
 async function readShareCertificateRegister() {
   try {
     const fileName = "SHARE CERTIFICATE LIST.docx";
-    const buffer = await readFile(join(process.cwd(), "uploads", fileName));
+    const buffer = await readFile(join(/*turbopackIgnore: true*/ process.cwd(), "uploads", fileName));
     const rows = await parseDocxRows(buffer);
     const parsed = tableFromRows(rows);
     if (!parsed.rows.length) return null;
-    const info = await stat(join(process.cwd(), "uploads", fileName));
+    const info = await stat(join(/*turbopackIgnore: true*/ process.cwd(), "uploads", fileName));
     return {
       id: "seed-share-certificate-list",
       fileName,
@@ -137,6 +137,22 @@ async function readShareCertificateRegister() {
   } catch {
     return null;
   }
+}
+
+async function firstExistingDir(paths: string[]) {
+  let lastError: unknown;
+  for (const path of paths) {
+    try {
+      const dir = path === "public/files"
+        ? join(/*turbopackIgnore: true*/ process.cwd(), "public", "files")
+        : join(/*turbopackIgnore: true*/ process.cwd(), "uploads");
+      await readdir(dir);
+      return dir;
+    } catch (error) {
+      lastError = error;
+    }
+  }
+  throw lastError;
 }
 
 function societySeed() {
