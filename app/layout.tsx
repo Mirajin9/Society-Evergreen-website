@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import "../styles.css";
 import "./next.css";
-import { DebugPanel } from "@/app/components/debug-panel";
 
 export const metadata: Metadata = {
   title: "Evergreen Apartment - Society Portal",
@@ -21,7 +20,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body>
         {children}
-        <DebugPanel />
       </body>
     </html>
   );
