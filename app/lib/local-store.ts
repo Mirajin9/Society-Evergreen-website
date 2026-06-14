@@ -165,7 +165,7 @@ export interface LocalSession {
 
 const STORE_KEY = "evergreen.localStore.v1";
 const SESSION_KEY = "evergreen.localSession.v1";
-const CURRENT_VERSION = 6;
+const CURRENT_VERSION = 7;
 
 const MC_ROLES_BY_FLAT: Record<number, string> = {
   157: "President",
@@ -430,7 +430,7 @@ async function loadSeed(): Promise<typeof DEMO_SEED> {
 function migrateStore(store: LocalStore, seed: typeof DEMO_SEED): LocalStore {
   let changed = false;
   const next = { ...store } as LocalStore;
-  if (store.version < 4 && seed.members?.length) {
+  if (store.version < 7 && seed.members?.length) {
     next.members = seed.members.map(normalizeMember);
     next.credentials = makeCredentials(next.members);
     next.reminders = makeRemindersForMembers(next.members);
@@ -594,7 +594,7 @@ function primaryMobile(member: LocalMember) {
 function firstTenDigitNumber(value: string | null) {
   const digits = value?.replace(/\D/g, "") || "";
   if (digits.length < 10) return null;
-  return digits.slice(0, 10);
+  return digits.match(/[6-9]\d{9}/)?.[0] || digits.slice(0, 10);
 }
 
 export function readStore(): LocalStore | null {
