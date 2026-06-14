@@ -635,7 +635,7 @@ const MEMBERS = [
     "status": "Active",
     "login": "Enabled",
     "lastLogin": "—",
-    "committee": "Vice-President",
+    "committee": null,
     "vehicleNumber": "DL4CAP 7372"
   },
   {
@@ -1215,7 +1215,7 @@ const MEMBERS = [
     "status": "Active",
     "login": "Enabled",
     "lastLogin": "—",
-    "committee": "Member",
+    "committee": null,
     "vehicleNumber": "DL9CAP3841"
   },
   {
@@ -1475,7 +1475,7 @@ const MEMBERS = [
     "status": "Active",
     "login": "Enabled",
     "lastLogin": "—",
-    "committee": "Secretary",
+    "committee": null,
     "vehicleNumber": "DL1CZ 6857"
   },
   {
@@ -1995,7 +1995,7 @@ const MEMBERS = [
     "status": "Active",
     "login": "Enabled",
     "lastLogin": "—",
-    "committee": null,
+    "committee": "Treasurer",
     "vehicleNumber": "DL2CAU 9995"
   },
   {
@@ -2015,7 +2015,7 @@ const MEMBERS = [
     "status": "Active",
     "login": "Enabled",
     "lastLogin": "1 hr ago",
-    "committee": "Treasurer",
+    "committee": null,
     "vehicleNumber": null
   },
   {
@@ -2055,7 +2055,7 @@ const MEMBERS = [
     "status": "Active",
     "login": "Enabled",
     "lastLogin": "—",
-    "committee": "Member",
+    "committee": null,
     "vehicleNumber": "DL9CBE1805"
   },
   {
@@ -2235,7 +2235,7 @@ const MEMBERS = [
     "status": "Active",
     "login": "Enabled",
     "lastLogin": "—",
-    "committee": null,
+    "committee": "MC Member",
     "vehicleNumber": "DL3CCP 7329"
   },
   {
@@ -2275,7 +2275,7 @@ const MEMBERS = [
     "status": "Active",
     "login": "Enabled",
     "lastLogin": "4 days ago",
-    "committee": null,
+    "committee": "Secretary",
     "vehicleNumber": "DL9CS 9739/DL2CAR 4771"
   },
   {
@@ -2435,7 +2435,7 @@ const MEMBERS = [
     "status": "Active",
     "login": "Enabled",
     "lastLogin": "—",
-    "committee": "Member",
+    "committee": null,
     "vehicleNumber": "DL9CAL 6908/DL9CAE0156"
   },
   {
@@ -2675,7 +2675,7 @@ const MEMBERS = [
     "status": "Active",
     "login": "Enabled",
     "lastLogin": "2 days ago",
-    "committee": "President",
+    "committee": "Vice President",
     "vehicleNumber": "DL2CAM8258"
   },
   {
@@ -3155,7 +3155,7 @@ const MEMBERS = [
     "status": "Active",
     "login": "Enabled",
     "lastLogin": "—",
-    "committee": null,
+    "committee": "President",
     "vehicleNumber": "DL7CL 5890"
   },
   {

@@ -165,7 +165,7 @@ export interface LocalSession {
 
 const STORE_KEY = "evergreen.localStore.v1";
 const SESSION_KEY = "evergreen.localSession.v1";
-const CURRENT_VERSION = 7;
+const CURRENT_VERSION = 8;
 
 const MC_ROLES_BY_FLAT: Record<number, string> = {
   157: "President",
@@ -430,7 +430,7 @@ async function loadSeed(): Promise<typeof DEMO_SEED> {
 function migrateStore(store: LocalStore, seed: typeof DEMO_SEED): LocalStore {
   let changed = false;
   const next = { ...store } as LocalStore;
-  if (store.version < 7 && seed.members?.length) {
+  if (store.version < 8 && seed.members?.length) {
     next.members = seed.members.map(normalizeMember);
     next.credentials = makeCredentials(next.members);
     next.reminders = makeRemindersForMembers(next.members);
@@ -445,7 +445,7 @@ function migrateStore(store: LocalStore, seed: typeof DEMO_SEED): LocalStore {
   } else {
     next.members = (next.members || []).map((member) => ({
       ...member,
-      committeeRole: MC_ROLES_BY_FLAT[member.flatNo] || member.committeeRole || null,
+      committeeRole: MC_ROLES_BY_FLAT[member.flatNo] || null,
       parkingSlot: null
     }));
     next.credentials = makeCredentials(next.members);
@@ -906,6 +906,6 @@ function normalizeMember(member: any): LocalMember {
     parkingSlot: null,
     vehicleNumber,
     remarks: member.deceased ? "Marked deceased in imported member list" : null,
-    committeeRole: MC_ROLES_BY_FLAT[flatNo] || member.committee || null
+    committeeRole: MC_ROLES_BY_FLAT[flatNo] || null
   };
 }

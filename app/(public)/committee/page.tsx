@@ -28,7 +28,7 @@ const MC_MEMBERS = [
     displayOrder: 3
   },
   {
-    name: "Ms. Santosh",
+    name: "Ms. Santosh Kumari",
     designation: "Treasurer",
     phone: "Contact society office",
     email: null,
