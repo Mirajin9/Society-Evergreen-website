@@ -4,8 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Icon } from "@/app/components/ui";
 import {
-  ensureLocalStore, getSession, memberForSession,
-  duesForFlat, remindersForFlat, sortedNotices, nextAgm,
+  ensureLocalStore, getSession, memberForSession, noticesForFlat,
   type LocalMember, type LocalStore
 } from "@/app/lib/local-store";
 
@@ -26,84 +25,55 @@ export function MemberDashboardClient() {
 
   if (!store || !member) return <div className="loading-pad">Loading your home...</div>;
 
-  const dues = duesForFlat(store, member.flatNo);
-  const reminders = remindersForFlat(store, member.flatNo);
-  const notices = sortedNotices(store);
-  const agm = nextAgm(store);
+  const notices = noticesForFlat(store, member.flatNo);
+  const documents = store.documents || [];
 
   const tiles = [
     {
       href: "/member/notices",
-      icon: "notice",
-      title: "Notices & Reminders",
-      desc: "Society notices, circulars and reminders specific to your flat.",
-      meta: `${notices.length} notices · ${reminders.length} reminders`
-    },
-    {
-      href: "/member/agm",
-      icon: "meeting",
-      title: "AGM Information",
-      desc: "Details of the last AGM and the upcoming meeting with its agenda.",
-      meta: agm ? `Next: ${new Date(agm.date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}` : "No AGM scheduled"
+      icon: "bell",
+      title: "Website Notifications",
+      desc: "Notices and updates published by the Management Committee.",
+      meta: notices.length ? `${notices.length} notice${notices.length === 1 ? "" : "s"}` : "No notices yet"
     },
     {
       href: "/member/documents",
       icon: "doc",
       title: "Documents & Records",
-      desc: "Audit reports, accounts, share certificates, forms and other records.",
-      meta: `${store.records.length} record sections`
+      desc: "AGM records, audit reports, accounts, forms and other documents uploaded by the MC.",
+      meta: documents.length ? `${documents.length} document${documents.length === 1 ? "" : "s"}` : "No uploads yet"
+    },
+    {
+      href: "/member/share-certificates",
+      icon: "shield",
+      title: "Share Certificates",
+      desc: "View the share certificate register after it is uploaded by the MC.",
+      meta: store.shareCertificateRegister ? "Register available" : "Not uploaded yet"
     },
     {
       href: "/member/profile",
       icon: "user",
       title: "My Profile",
-      desc: "Your details, maintenance dues and personal reminders. Request corrections.",
-      meta: dues && dues.outstanding > 0 ? `₹${dues.outstanding.toLocaleString("en-IN")} outstanding` : "All dues clear"
+      desc: "Check your member details and request corrections from the society office.",
+      meta: `Flat ${member.flatNo}`
     }
   ];
 
   return (
     <>
-      {/* Welcome hero */}
       <section className="pub-hero" style={{ padding: "48px 40px 44px" }}>
-        <div className="eyebrow-pub">Flat {member.flatNo} · {store.society.name}</div>
+        <div className="eyebrow-pub">Flat {member.flatNo} - {store.society.name}</div>
         <h1 style={{ fontSize: "clamp(34px, 5vw, 52px)" }}>
           Welcome, <em>{firstName(member.name)}</em>.
         </h1>
         <p className="hero-desc" style={{ marginBottom: 0 }}>
-          Everything about your flat and the society — notices, AGM information, documents and your
-          personal records — is available right here.
+          Use this portal to read MC notices, download society records, view the share certificate register and check your member profile.
         </p>
       </section>
 
-      {/* Quick status strip */}
-      <div className="pub-kpi-bar">
-        <div className="pub-kpi">
-          <div className="v">{dues ? `₹${dues.outstanding.toLocaleString("en-IN")}` : "—"}</div>
-          <div className="l">Outstanding dues</div>
-          <div className="s">{dues?.status === "paid" ? "All clear" : dues?.status === "overdue" ? "Overdue — please pay" : "Payment due"}</div>
-        </div>
-        <div className="pub-kpi">
-          <div className="v">{reminders.length}</div>
-          <div className="l">Active reminders</div>
-          <div className="s">Personal + society-wide</div>
-        </div>
-        <div className="pub-kpi">
-          <div className="v">{agm ? new Date(agm.date).getDate() : "—"}</div>
-          <div className="l">Next AGM</div>
-          <div className="s">{agm ? new Date(agm.date).toLocaleDateString("en-IN", { month: "long", year: "numeric" }) : "Not scheduled"}</div>
-        </div>
-        <div className="pub-kpi">
-          <div className="v">{member.vehicleNumber || "—"}</div>
-          <div className="l">Vehicle on file</div>
-          <div className="s">Vehicle ownership record</div>
-        </div>
-      </div>
-
-      {/* Tiles */}
       <section className="pub-tiles-section">
-        <h2>Your society at a glance</h2>
-        <p className="section-sub">Select a tile to view details.</p>
+        <h2>Member Portal</h2>
+        <p className="section-sub">Only records uploaded or notices published by the MC will appear here.</p>
         <div className="tile-grid" style={{ gridTemplateColumns: "repeat(2, 1fr)" }}>
           {tiles.map((tile) => (
             <Link key={tile.href} href={tile.href} className="tile-card">

@@ -16,11 +16,6 @@ export async function POST(req: Request) {
     }
     const normalized = mobile.replace(/\D/g, "");
 
-    // TODO (Supabase): replace OTP check with Supabase phone auth token verification:
-    //   const { data, error } = await supabase.auth.verifyOtp({ phone: `+91${normalized}`, token: otp, type: "sms" });
-    //   if (error) return NextResponse.json({ error: "invalid_otp" }, { status: 401 });
-    //   return NextResponse.json({ access_token: data.session?.access_token });
-
     // Mock mode: accept MOCK_OTP ("123456") always, ignore expiry check server-side
     // (client handles its own expiry in local-store.ts)
     if (otp.trim() !== MOCK_OTP) {

@@ -83,7 +83,7 @@ export function AdminShareCertificatesClient() {
             <div>
               <label className="fl">Share certificate register</label>
               <input className="field" name="file" type="file" accept=".xlsx,.docx" required />
-              <div className="auth-note">The file is parsed into a member-visible table. Members do not receive a downloadable file.</div>
+              <div className="auth-note">The file is parsed into a member-visible table.</div>
             </div>
             <button className="btn btn-primary" style={{ alignSelf: "flex-start" }}>Upload register</button>
           </form>

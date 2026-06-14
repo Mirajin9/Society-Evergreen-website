@@ -85,7 +85,7 @@ export function AdminNoticesClient() {
 
   return (
     <>
-      <PageHead title="Notices" sub="Publish society notices and reminders visible to logged-in members." breadcrumb="ADMIN - NOTICES" />
+      <PageHead title="Notices" sub="Publish website notifications visible to logged-in members." breadcrumb="MC - NOTICES" />
       <div className="page-body">
         {message && <div className="success-box" style={{ marginBottom: 14 }}>{message}</div>}
         {error && <div className="error-box" style={{ marginBottom: 14 }}>{error}</div>}

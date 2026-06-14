@@ -7,16 +7,10 @@ import { logoutLocal } from "@/app/lib/local-store";
 
 const ADMIN_LINKS = [
   { href: "/admin/dashboard", label: "Dashboard", icon: "home" },
-  { href: "/admin/members", label: "Members", icon: "users" },
-  { href: "/admin/data-completion", label: "Data Completion", icon: "chart" },
-  { href: "/admin/committee", label: "Committee", icon: "shield" },
-  { href: "/admin/calendar", label: "Calendar & Events", icon: "cal" },
   { href: "/admin/notices", label: "Notices", icon: "bell" },
-  { href: "/admin/records", label: "Records", icon: "folder" },
+  { href: "/admin/records", label: "Upload Records", icon: "folder" },
   { href: "/admin/share-certificates", label: "Share Certificates", icon: "doc" },
-  { href: "/admin/complaints", label: "Complaints", icon: "inbox" },
-  { href: "/admin/society", label: "Society Profile", icon: "doc" },
-  { href: "/admin/database", label: "Database", icon: "doc" }
+  { href: "/admin/members", label: "Member List", icon: "users" }
 ];
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
@@ -36,7 +30,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           <PubLogo />
         </Link>
         <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-          <span style={{ fontSize: 12, color: "rgba(255,255,255,0.7)", textTransform: "uppercase", letterSpacing: "0.08em" }}>Admin Console</span>
+          <span style={{ fontSize: 12, color: "rgba(255,255,255,0.7)", textTransform: "uppercase", letterSpacing: "0.08em" }}>MC Console</span>
           <button onClick={logout} className="pub-nav-login" style={{ background: "rgba(255,255,255,0.14)" }}>
             <Icon name="lock" size={13} color="#fff" /> Logout
           </button>

@@ -5,7 +5,6 @@ import { PublicFooter } from "@/app/components/ui";
 const MEMBER_LINKS: PortalLink[] = [
   { href: "/member/dashboard", label: "Home" },
   { href: "/member/notices", label: "Notices" },
-  { href: "/member/agm", label: "AGM" },
   { href: "/member/documents", label: "Documents" },
   { href: "/member/share-certificates", label: "Share Certificates" },
   { href: "/member/profile", label: "My Profile" }

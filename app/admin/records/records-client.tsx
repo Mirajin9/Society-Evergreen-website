@@ -5,18 +5,12 @@ import { PageHead, StatusBadge } from "@/app/components/ui";
 import { addDocument, ensureLocalStore, getSession, type LocalDocument, type LocalStore, type LocalVisibility } from "@/app/lib/local-store";
 
 const documentChecklist = [
-  { title: "Society registration certificate", category: "forms" },
-  { title: "Evergreen CGHS bye-laws", category: "forms" },
   { title: "Latest audited accounts", category: "finance" },
   { title: "Latest annual return", category: "finance" },
   { title: "AGM notice and agenda", category: "agm" },
   { title: "Last AGM minutes", category: "agm" },
-  { title: "MC meeting minutes", category: "mc" },
-  { title: "Election notice and result", category: "elections" },
-  { title: "Share certificate register", category: "share_certificates" },
-  { title: "Vehicle ownership register", category: "vehicles" },
-  { title: "Nomination form", category: "forms" },
-  { title: "Transfer / NOC forms", category: "forms" }
+  { title: "MC circulars / notices", category: "notices" },
+  { title: "Share certificate register", category: "share_certificates" }
 ];
 
 export function AdminRecordsClient() {
@@ -81,7 +75,7 @@ export function AdminRecordsClient() {
   if (!store) return <div className="loading-pad">Loading record categories...</div>;
   return (
     <>
-      <PageHead title="Records Library" sub="Upload files and choose who can view or download them." breadcrumb="ADMIN - RECORDS" />
+      <PageHead title="Upload Records" sub="Upload AGM minutes, audit reports, accounts, notices and official records." breadcrumb="MC - RECORDS" />
       <div className="page-body">
         {notice && <div className="success-box" style={{ marginBottom: 14 }}>{notice}</div>}
         {error && <div className="error-box" style={{ marginBottom: 14 }}>{error}</div>}
@@ -110,7 +104,7 @@ export function AdminRecordsClient() {
             <div>
               <label className="fl">File</label>
               <input className="field" name="file" type="file" accept=".pdf,.png,.jpg,.jpeg,.txt,.doc,.docx,.xls,.xlsx" required />
-              <div className="auth-note">Local test uploads are stored in this browser only.</div>
+              <div className="auth-note">Uploaded files appear in the member Documents section.</div>
             </div>
             <div>
               <label className="fl">Description</label>

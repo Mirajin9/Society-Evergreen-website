@@ -3369,64 +3369,15 @@ const DATA_COMPLETION = {
   fullProfiles: MEMBERS.filter(m => memberCompleteness(m).missing.length === 0).length,
 };
 
-const NOTICES = [
-  { id: "n-2026-018", date: "May 22, 2026", title: "Notice of 28th Annual General Meeting",            cat: "AGM",         pinned: true,  vis: "members", body: "The 28th AGM of Evergreen Apartment CGHS Ltd. will be held on Saturday, 12 July 2026 at 5:00 PM in the Community Hall." },
-  { id: "n-2026-017", date: "May 18, 2026", title: "Quarterly Maintenance Bill — Q2 FY 2026-27",       cat: "Payment",     pinned: false, vis: "members", body: "Bills for Apr–Jun 2026 dispatched. Due date: 10 June 2026. Late fee 2% per month thereafter." },
-  { id: "n-2026-016", date: "May 14, 2026", title: "Lift Modernisation — Floors 1-5",                  cat: "Maintenance", pinned: false, vis: "public",  body: "Phase-1 modernisation of lifts begins 02 June. Single lift operational throughout work hours." },
-  { id: "n-2026-015", date: "May 9, 2026",  title: "Water Tank Cleaning Schedule",                     cat: "Maintenance", pinned: false, vis: "public",  body: "Underground and overhead tanks to be cleaned during 28–30 May. Brief 4-hr shutdowns; refer schedule." },
-  { id: "n-2026-014", date: "May 2, 2026",  title: "Election of Managing Committee — Nominations Open",cat: "Election",    pinned: false, vis: "members", body: "Nominations for the 2026–2028 Managing Committee invited until 18 June. Forms available at the Society Office." },
-  { id: "n-2026-013", date: "Apr 28, 2026", title: "Statutory Audit Report FY 2024-25 — Filed",        cat: "Compliance",  pinned: false, vis: "members", body: "Audit report for FY 2024-25 has been filed with the Office of RCS. Members may review the report in the document library." },
-  { id: "n-2026-012", date: "Apr 21, 2026", title: "Independence Day Celebration — Save the date",     cat: "Notice",      pinned: false, vis: "public",  body: "Flag hoisting and community breakfast on 15 August at 8:00 AM at the central lawn. All residents and families welcome." },
-];
+const NOTICES = [];
 
-const EVENTS = [
-  { id: "e1", date: "2026-06-02", time: "09:00", title: "Lift Modernisation — Phase 1 begins", cat: "Maintenance",   vis: "members", loc: "Main building", docs: 2 },
-  { id: "e2", date: "2026-06-05", time: "10:00", title: "Water tank cleaning",                cat: "Maintenance",   vis: "members", loc: "Roof + basement", docs: 1 },
-  { id: "e3", date: "2026-06-10", time: "23:59", title: "Q2 Maintenance dues — Last date",    cat: "Payment",       vis: "members", loc: "Society Office",  docs: 1 },
-  { id: "e4", date: "2026-06-15", time: "18:30", title: "MC Meeting — June",                  cat: "MC Meeting",    vis: "members", loc: "Society Office",  docs: 3 },
-  { id: "e5", date: "2026-06-18", time: "17:00", title: "Election nominations close",         cat: "Election",      vis: "members", loc: "Society Office",  docs: 2 },
-  { id: "e6", date: "2026-08-15", time: "08:00", title: "Independence Day flag hoisting",     cat: "Society Event", vis: "public",  loc: "Central Lawn",    docs: 0 },
-  { id: "e7", date: "2026-07-12", time: "17:00", title: "28th Annual General Meeting",        cat: "AGM",           vis: "members", loc: "Community Hall",  docs: 6 },
-  { id: "e8", date: "2026-07-20", time: "10:00", title: "MC Election Day",                    cat: "Election",      vis: "members", loc: "Community Hall",  docs: 4 },
-];
+const EVENTS = [];
 
-const DOCUMENTS = [
-  { id: "d1",  title: "AGM Notice — 28th AGM",              cat: "AGM",        size: "412 KB", date: "May 22, 2026",  ver: "v1", vis: "members", uploadedBy: "Kunal Aggarwal", linkedEvent: "e7" },
-  { id: "d2",  title: "Agenda — 28th AGM",                  cat: "AGM",        size: "238 KB", date: "May 22, 2026",  ver: "v1", vis: "members", uploadedBy: "Kunal Aggarwal", linkedEvent: "e7" },
-  { id: "d3",  title: "Minutes of 27th AGM (Jul 2025)",     cat: "AGM",        size: "1.1 MB", date: "Aug 04, 2025",  ver: "v2", vis: "members", uploadedBy: "Kunal Aggarwal" },
-  { id: "d4",  title: "Statutory Audit Report FY 2024-25",  cat: "Audit",      size: "3.4 MB", date: "Apr 28, 2026",  ver: "v1", vis: "members", uploadedBy: "Nikhil Chadha" },
-  { id: "d5",  title: "Annual Return FY 2024-25",           cat: "Annual",     size: "1.8 MB", date: "Apr 28, 2026",  ver: "v1", vis: "members", uploadedBy: "Nikhil Chadha" },
-  { id: "d6",  title: "MC Resolution — Lift Modernisation", cat: "MC",         size: "186 KB", date: "Apr 12, 2026",  ver: "v1", vis: "members", uploadedBy: "Kunal Aggarwal", linkedEvent: "e1" },
-  { id: "d7",  title: "Election Notice — 2026 MC Polls",    cat: "Election",   size: "318 KB", date: "May 02, 2026",  ver: "v1", vis: "members", uploadedBy: "Kunal Aggarwal", linkedEvent: "e8" },
-  { id: "d8",  title: "Nomination Form (Form-A)",           cat: "Form",       size: "94 KB",  date: "May 02, 2026",  ver: "v1", vis: "public",  uploadedBy: "Kunal Aggarwal" },
-  { id: "d9",  title: "Bye-laws — Evergreen CGHS",          cat: "Bye-laws",   size: "2.2 MB", date: "Jan 15, 2023",  ver: "v3", vis: "public",  uploadedBy: "Kunal Aggarwal" },
-  { id: "d10", title: "Maintenance Vendor Schedule — Jun 2026", cat: "Maintenance", size: "210 KB", date: "May 14, 2026", ver: "v1", vis: "members", uploadedBy: "H.H. Bhardwaj", linkedEvent: "e1" },
-  { id: "d11", title: "RCS Compliance Certificate 2025",    cat: "Compliance", size: "604 KB", date: "Mar 04, 2026",  ver: "v1", vis: "public",  uploadedBy: "Kunal Aggarwal" },
-  { id: "d12", title: "Parking Allocation Master List",     cat: "Parking",    size: "1.2 MB", date: "Feb 22, 2026",  ver: "v4", vis: "admin",   uploadedBy: "H.H. Bhardwaj" },
-  { id: "d13", title: "Society Registration Certificate",   cat: "Bye-laws",   size: "488 KB", date: "Aug 21, 1998",  ver: "v1", vis: "public",  uploadedBy: "Society Office" },
-];
+const DOCUMENTS = [];
 
-const COMPLAINTS = [
-  { id: "EA-CMP-2026-041", date: "May 21, 2026", title: "Water seepage on ceiling",                cat: "Maintenance", status: "In Progress", by: "Mrs. Madhu Bala Sharma", flat: 2,   assignee: "Maintenance Vendor", priority: "High" },
-  { id: "EA-CMP-2026-040", date: "May 20, 2026", title: "Gate intercom not working",               cat: "Security",    status: "Open",        by: "Mr. R.K. Narula",        flat: 78,  assignee: "Unassigned",         priority: "Medium" },
-  { id: "EA-CMP-2026-039", date: "May 16, 2026", title: "Lawn lights stay on during day",          cat: "Maintenance", status: "Resolved",    by: "Mr. Kunal Aggarwal",     flat: 73,  assignee: "Electrician",        priority: "Low" },
-  { id: "EA-CMP-2026-038", date: "May 12, 2026", title: "Lift makes scraping sound on 4th floor",  cat: "Maintenance", status: "In Progress", by: "Mr. Saurabh Sharma",     flat: 133, assignee: "Lift Vendor",        priority: "High" },
-  { id: "EA-CMP-2026-037", date: "May 08, 2026", title: "Request: visitor parking near gate-2",    cat: "Parking",     status: "Open",        by: "Mr. P.S. Sharma",        flat: 1,   assignee: "Unassigned",         priority: "Low" },
-  { id: "EA-CMP-2026-036", date: "May 03, 2026", title: "Stair light bulb fused — 3rd floor",      cat: "Maintenance", status: "Resolved",    by: "Mrs. Rita Sudan",        flat: 134, assignee: "Electrician",        priority: "Medium" },
-];
+const COMPLAINTS = [];
 
-const ACTIVITY = [
-  { t: "10:42 AM", who: "Kunal Aggarwal", action: "Published notice",       target: "Notice of 28th AGM" },
-  { t: "10:38 AM", who: "Kunal Aggarwal", action: "Attached document",      target: "AGM Notice → Event e7" },
-  { t: "10:31 AM", who: "Nikhil Chadha",  action: "Uploaded document",      target: "Statutory Audit Report FY 2024-25" },
-  { t: "10:30 AM", who: "Nikhil Chadha",  action: "Set visibility",         target: "Audit Report → Members-only" },
-  { t: "09:14 AM", who: "Saurabh Sharma", action: "Updated member",         target: "Flat 41 — added phone & email" },
-  { t: "09:08 AM", who: "Saurabh Sharma", action: "Sent invitation",        target: "Flat 41 — login invite" },
-  { t: "Yesterday",who: "Saurabh Sharma", action: "Sent reminders",         target: "AGM — 7 day reminder (165 recipients)" },
-  { t: "Yesterday",who: "H.H. Bhardwaj",  action: "Bulk import",            target: "12 members updated with phone numbers" },
-  { t: "May 21",   who: "System",         action: "Login invitations sent", target: "Batch — 14 members" },
-  { t: "May 20",   who: "Kunal Aggarwal", action: "Created event",          target: "Lift Modernisation Phase 1" },
-];
+const ACTIVITY = [];
 
 // Helpers
 const fmtDate = (iso) => {

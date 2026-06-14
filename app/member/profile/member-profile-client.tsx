@@ -3,9 +3,8 @@
 import { useEffect, useState } from "react";
 import { Icon, Modal } from "@/app/components/ui";
 import {
-  ensureLocalStore, getSession, memberForSession,
-  duesForFlat, remindersForFlat, changeRequestsForFlat, addChangeRequest,
-  type LocalMember, type LocalStore, type ChangeRequest
+  addChangeRequest, changeRequestsForFlat, ensureLocalStore, getSession, memberForSession,
+  type ChangeRequest, type LocalMember, type LocalStore
 } from "@/app/lib/local-store";
 
 const EDITABLE_FIELDS = [
@@ -18,14 +17,8 @@ const EDITABLE_FIELDS = [
   { key: "fatherSpouseName", label: "Father / Spouse name" }
 ] as const;
 
-const RUPEE = "₹";
-const ARROW = "→";
-const MIDDOT = "·";
-const DASH = "—";
-
-function rupee(n: number) {
-  return `${RUPEE}${n.toLocaleString("en-IN")}`;
-}
+const DASH = "-";
+const ARROW = "->";
 
 function Row({ label, value }: { label: string; value: React.ReactNode }) {
   return (
@@ -57,17 +50,15 @@ export function MemberProfileClient() {
 
   useEffect(() => {
     ensureLocalStore().then((next) => {
-      const m = memberForSession(next, getSession());
+      const currentMember = memberForSession(next, getSession());
       setStore(next);
-      setMember(m);
-      if (m) setRequests(changeRequestsForFlat(next, m.flatNo));
+      setMember(currentMember);
+      if (currentMember) setRequests(changeRequestsForFlat(next, currentMember.flatNo));
     });
   }, []);
 
   if (!store || !member) return <div className="loading-pad">Loading your profile...</div>;
 
-  const dues = duesForFlat(store, member.flatNo);
-  const reminders = remindersForFlat(store, member.flatNo);
   const currentValue = (member as unknown as Record<string, string | null>)[field] || "";
 
   async function submitRequest() {
@@ -89,42 +80,15 @@ export function MemberProfileClient() {
     setReason("");
   }
 
-  const duesColor = dues?.status === "paid" ? "var(--flag-green)" : dues?.status === "overdue" ? "#b91c1c" : "#b45309";
-
   return (
     <>
       <header className="pub-page-header">
         <div className="eyebrow-pub">Flat {member.flatNo}</div>
         <h1>My Profile</h1>
-        <p className="ph-sub">Your details, maintenance dues and personal reminders.</p>
+        <p className="ph-sub">Your member details as recorded by the society office.</p>
       </header>
 
       <section className="pub-section" style={{ background: "#fff", paddingTop: 40, paddingBottom: 40, display: "flex", flexDirection: "column", gap: 28 }}>
-
-        {/* Maintenance dues */}
-        <div>
-          <h2 style={{ fontSize: 22, marginBottom: 16 }}>Maintenance dues</h2>
-          <div className="card pad-lg" style={{ borderLeft: `3px solid ${duesColor}` }}>
-            {!dues ? (
-              <div style={{ color: "var(--muted)", fontSize: 14 }}>No dues record found for your flat.</div>
-            ) : (
-              <div className="grid g4" style={{ gap: 24 }}>
-                <Row label="Monthly maintenance" value={rupee(dues.monthlyMaintenance)} />
-                <div>
-                  <div className="tiny" style={{ marginBottom: 4 }}>Outstanding</div>
-                  <div style={{ fontSize: 22, fontWeight: 700, color: duesColor }}>{rupee(dues.outstanding)}</div>
-                </div>
-                <Row label="Last payment" value={dues.lastPaidDate ? `${rupee(dues.lastPaidAmount)} ${MIDDOT} ${new Date(dues.lastPaidDate).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}` : DASH} />
-                <div>
-                  <div className="tiny" style={{ marginBottom: 4 }}>Status</div>
-                  <span style={{ fontSize: 12, fontWeight: 600, padding: "4px 12px", borderRadius: 999, background: dues.status === "paid" ? "var(--flag-green-lt)" : dues.status === "overdue" ? "#fde8e8" : "var(--saffron-light)", color: duesColor, textTransform: "capitalize" }}>{dues.status}</span>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Personal info */}
         <div>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16, flexWrap: "wrap", gap: 10 }}>
             <h2 style={{ fontSize: 22, margin: 0 }}>Your details</h2>
@@ -147,30 +111,11 @@ export function MemberProfileClient() {
               <Row label="Father / Spouse name" value={member.fatherSpouseName} />
             </div>
             <div style={{ marginTop: 18, padding: "10px 14px", background: "var(--navy-light)", borderRadius: 8, fontSize: 12.5, color: "var(--navy)" }}>
-              Found something wrong? Use <strong>Request a correction</strong> {DASH} the society office will review and update your record.
+              Found something wrong? Use <strong>Request a correction</strong>. The society office will review and update your record.
             </div>
           </div>
         </div>
 
-        {/* Reminders */}
-        <div>
-          <h2 style={{ fontSize: 22, marginBottom: 16 }}>Personal reminders</h2>
-          {reminders.length === 0 ? (
-            <div className="card pad" style={{ color: "var(--muted)", fontSize: 14 }}>No active reminders.</div>
-          ) : (
-            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-              {reminders.map((r) => (
-                <div key={r.id} className="card" style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px" }}>
-                  <Icon name="bell" size={15} color="var(--saffron)" />
-                  <span style={{ fontSize: 14, color: "var(--navy)", flex: 1 }}>{r.text}</span>
-                  {r.dueDate && <span style={{ fontSize: 12, color: "var(--muted)" }}>Due {new Date(r.dueDate).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}</span>}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Change requests history */}
         {requests.length > 0 && (
           <div>
             <h2 style={{ fontSize: 22, marginBottom: 16 }}>Your correction requests</h2>

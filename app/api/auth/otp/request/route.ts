@@ -25,7 +25,7 @@ export async function POST(req: Request) {
 
     pendingOtps.set(normalized, { otp: MOCK_OTP, expiresAt: Date.now() + 5 * 60 * 1000 });
 
-    // TODO (SMS): replace console.log with actual SMS dispatch:
+    // TODO: replace console.log with the chosen OTP delivery provider:
     //   await sendSms({ to: `+91${normalized}`, body: `Your Evergreen Apartments OTP is: ${MOCK_OTP}. Valid for 5 minutes.` });
     console.log(`[DEV] OTP for +91${normalized}: ${MOCK_OTP}`);
 

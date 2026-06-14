@@ -1,5 +1,5 @@
-import { AdminCalendarClient } from "./calendar-client";
+import { notFound } from "next/navigation";
 
 export default function AdminCalendarPage() {
-  return <AdminCalendarClient />;
+  notFound();
 }

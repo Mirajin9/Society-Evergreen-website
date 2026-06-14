@@ -77,23 +77,6 @@ export interface LocalNotice {
   targetFlatNos: number[] | null; // null = all members
 }
 
-export interface LocalReminder {
-  id: string;
-  flatNo: number | null;   // null = applies to all members
-  text: string;
-  dueDate: string | null;  // ISO date
-  type: "dues" | "document" | "general";
-}
-
-export interface LocalDues {
-  flatNo: number;
-  monthlyMaintenance: number;
-  outstanding: number;
-  lastPaidDate: string | null;
-  lastPaidAmount: number;
-  status: "paid" | "due" | "overdue";
-}
-
 export interface AgmRecord {
   id: string;
   type: "AGM" | "SGM";
@@ -147,10 +130,7 @@ export interface LocalStore {
   documents: LocalDocument[];
   shareCertificateRegister: LocalShareCertificateRegister | null;
   records: Array<{ key: string; label: string; defaultVisibility: LocalVisibility; description: string }>;
-  complaintCategories: string[];
   notices: LocalNotice[];
-  reminders: LocalReminder[];
-  dues: LocalDues[];
   agms: AgmRecord[];
   changeRequests: ChangeRequest[];
   auditLogs: LocalAuditLog[];
@@ -165,7 +145,7 @@ export interface LocalSession {
 
 const STORE_KEY = "evergreen.localStore.v1";
 const SESSION_KEY = "evergreen.localSession.v1";
-const CURRENT_VERSION = 8;
+const CURRENT_VERSION = 9;
 
 const MC_ROLES_BY_FLAT: Record<number, string> = {
   157: "President",
@@ -176,164 +156,18 @@ const MC_ROLES_BY_FLAT: Record<number, string> = {
 };
 
 const recordCategories = [
-  ["agm", "AGM / SGM / General Body Records", "members", "Meeting notice, agenda, minutes, resolutions, annexures."],
-  ["mc", "Managing Committee Records", "members", "MC notices, agendas, minutes, resolutions and decisions."],
-  ["share_certificates", "Share Certificate Register", "members", "Read-only register of share certificates issued by the MC."],
-  ["finance", "Financial & Audit Records", "members", "Audit reports, audited accounts, annual returns, statements."],
-  ["notices", "Notices & Announcements", "members", "Society notices, shutdown notices, circulars and emergency notices."],
-  ["elections", "Election Records", "members", "Election schedule, nominations, candidate lists and results."],
-  ["vehicles", "Vehicle Register", "members", "List of vehicles declared by members."],
-  ["forms", "Forms & Downloadable Formats", "members", "NOC, tenant, renovation, complaint and update forms."]
+  ["agm", "AGM / General Body Records", "members", "AGM notices, agendas, minutes, resolutions and annexures."],
+  ["finance", "Audit Reports & Accounts", "members", "Audit reports, audited accounts, annual returns and financial statements."],
+  ["notices", "Notices & Circulars", "members", "Society notices, circulars and important member updates."],
+  ["share_certificates", "Share Certificate Register", "members", "Register of share certificates issued by the MC."],
+  ["forms", "Forms & Downloadable Formats", "members", "Member forms and official formats shared by the society office."]
 ] as const;
 
-const defaultEvents: LocalEvent[] = [
-  {
-    id: "evt-public-1",
-    title: "Independence Day gathering",
-    date: "2026-08-15",
-    startTime: "08:00",
-    endTime: "10:00",
-    location: "Central lawn",
-    description: "Flag hoisting and breakfast for residents and guests.",
-    visibility: "public",
-    reminder: false
-  },
-  {
-    id: "evt-member-1",
-    title: "Monthly Managing Committee meeting",
-    date: "2026-06-15",
-    startTime: "18:30",
-    endTime: "19:30",
-    location: "Society office",
-    description: "Internal committee meeting.",
-    visibility: "members",
-    reminder: true
-  }
-];
+const defaultEvents: LocalEvent[] = [];
 
-const defaultNotices: LocalNotice[] = [
-  {
-    id: "ntc-1",
-    title: "47th Annual General Meeting — Notice",
-    body: "Notice is hereby given that the 47th AGM of Evergreen Apartment CGHS Ltd. will be held on 28 September 2026 at 11:00 AM in the Community Hall. All members are requested to attend. Agenda enclosed.",
-    date: "2026-09-05",
-    category: "agm",
-    pinned: true,
-    targetFlatNos: null
-  },
-  {
-    id: "ntc-2",
-    title: "Water tank cleaning — 12 June",
-    body: "Overhead and underground water tanks will be cleaned on 12 June 2026 between 10 AM and 2 PM. Water supply will remain suspended during this period. Kindly store water in advance.",
-    date: "2026-06-08",
-    category: "maintenance",
-    pinned: false,
-    targetFlatNos: null
-  },
-  {
-    id: "ntc-3",
-    title: "Maintenance charges for Q2 FY 2026-27",
-    body: "Quarterly maintenance charges for July–September 2026 are now due. Members are requested to clear dues by 15 July 2026 to avoid a late fee of ₹100 per month.",
-    date: "2026-06-01",
-    category: "general",
-    pinned: false,
-    targetFlatNos: null
-  },
-  {
-    id: "ntc-4",
-    title: "Lift modernization work — Block A",
-    body: "Modernization of the Block A lift will be carried out from 18–20 June 2026. Residents may use the Block B lift during this period. Inconvenience is regretted.",
-    date: "2026-05-28",
-    category: "urgent",
-    pinned: false,
-    targetFlatNos: null
-  }
-];
+const defaultNotices: LocalNotice[] = [];
 
-const defaultAgms: AgmRecord[] = [
-  {
-    id: "agm-next",
-    type: "AGM",
-    fy: "2025-26",
-    date: "2026-09-28",
-    status: "scheduled",
-    venue: "Community Hall, Evergreen Apartment",
-    time: "11:00 AM",
-    agenda: [
-      "Confirmation of the minutes of the previous AGM",
-      "Adoption of the audited accounts for FY 2025-26",
-      "Consideration of the auditor's report and replies to audit observations",
-      "Approval of the annual budget for FY 2026-27",
-      "Revision of monthly maintenance charges",
-      "Appointment of the statutory auditor for the next financial year",
-      "Election of the new Managing Committee",
-      "Any other matter with the permission of the Chair"
-    ],
-    resolutions: [],
-    minutesAvailable: false
-  },
-  {
-    id: "agm-last",
-    type: "AGM",
-    fy: "2024-25",
-    date: "2025-09-21",
-    status: "completed",
-    venue: "Community Hall, Evergreen Apartment",
-    time: "11:00 AM",
-    agenda: [
-      "Confirmation of the minutes of the previous AGM",
-      "Adoption of the audited accounts for FY 2024-25",
-      "Approval of the annual budget for FY 2025-26",
-      "Repair and waterproofing of terrace",
-      "Appointment of the statutory auditor"
-    ],
-    resolutions: [
-      "Audited accounts for FY 2024-25 were adopted unanimously.",
-      "Annual budget for FY 2025-26 was approved with no objections.",
-      "Terrace waterproofing approved at an estimated cost of ₹4.5 lakh, funded from the sinking fund.",
-      "M/s. Verma & Associates re-appointed as statutory auditor for FY 2025-26.",
-      "Monthly maintenance retained at the existing rate."
-    ],
-    minutesAvailable: true
-  }
-];
-
-// Generates demo maintenance dues for every member (fictional figures).
-function makeDuesForMembers(members: LocalMember[]): LocalDues[] {
-  return members.map((m) => {
-    const base = 2500;
-    const cyclesOwed = m.flatNo % 4; // 0..3 quarters outstanding
-    const outstanding = cyclesOwed * base;
-    const status: LocalDues["status"] = outstanding === 0 ? "paid" : cyclesOwed >= 3 ? "overdue" : "due";
-    return {
-      flatNo: m.flatNo,
-      monthlyMaintenance: base,
-      outstanding,
-      lastPaidDate: outstanding === 0 ? "2026-06-02" : "2026-03-05",
-      lastPaidAmount: base,
-      status
-    };
-  });
-}
-
-// A small set of demo personal + society-wide reminders.
-function makeRemindersForMembers(members: LocalMember[]): LocalReminder[] {
-  const reminders: LocalReminder[] = [
-    { id: "rem-all-1", flatNo: null, text: "Submit updated KYC / ownership proof to the society office.", dueDate: "2026-06-30", type: "document" },
-    { id: "rem-all-2", flatNo: null, text: "47th AGM on 28 September 2026 — please mark your attendance.", dueDate: "2026-09-28", type: "general" }
-  ];
-  // Add a dues reminder for flats with outstanding amounts (first few only for demo).
-  members.filter((m) => m.flatNo % 4 !== 0).slice(0, 30).forEach((m) => {
-    reminders.push({
-      id: `rem-dues-${m.flatNo}`,
-      flatNo: m.flatNo,
-      text: "Maintenance dues are pending for your flat. Kindly clear them at the earliest.",
-      dueDate: "2026-07-15",
-      type: "dues"
-    });
-  });
-  return reminders;
-}
+const defaultAgms: AgmRecord[] = [];
 
 let initPromise: Promise<LocalStore> | null = null;
 
@@ -385,21 +219,7 @@ async function loadStore(): Promise<LocalStore> {
     documents: seed.documents || [],
     shareCertificateRegister: null,
     records: makeRecordCategories(),
-    complaintCategories: [
-      "Maintenance",
-      "Water",
-      "Electricity",
-      "Lift",
-      "Security",
-      "Cleanliness",
-      "Billing/accounts",
-      "Structural/repair",
-      "Staff/vendor issue",
-      "Other"
-    ],
     notices: defaultNotices,
-    reminders: makeRemindersForMembers(members),
-    dues: makeDuesForMembers(members),
     agms: defaultAgms,
     changeRequests: [],
     auditLogs: [
@@ -430,11 +250,12 @@ async function loadSeed(): Promise<typeof DEMO_SEED> {
 function migrateStore(store: LocalStore, seed: typeof DEMO_SEED): LocalStore {
   let changed = false;
   const next = { ...store } as LocalStore;
-  if (store.version < 8 && seed.members?.length) {
+  if (store.version < 9 && seed.members?.length) {
     next.members = seed.members.map(normalizeMember);
     next.credentials = makeCredentials(next.members);
-    next.reminders = makeRemindersForMembers(next.members);
-    next.dues = makeDuesForMembers(next.members);
+    next.events = defaultEvents;
+    next.notices = defaultNotices;
+    next.agms = defaultAgms;
     changed = true;
   } else if (store.version < 5) {
     next.credentials = makeCredentials(next.members || []);
@@ -476,14 +297,6 @@ function migrateStore(store: LocalStore, seed: typeof DEMO_SEED): LocalStore {
       ...notice,
       targetFlatNos: notice.targetFlatNos === undefined ? null : notice.targetFlatNos
     }));
-  }
-  if (!Array.isArray(next.reminders)) {
-    next.reminders = makeRemindersForMembers(next.members || []);
-    changed = true;
-  }
-  if (!Array.isArray(next.dues)) {
-    next.dues = makeDuesForMembers(next.members || []);
-    changed = true;
   }
   if (!Array.isArray(next.agms)) {
     next.agms = defaultAgms;
@@ -642,7 +455,7 @@ export async function requestOtp(mobile: string): Promise<{ flatNo: number }> {
   }
   const state: OtpState = { mobile: normalized, flatNo: member.flatNo, expiresAt: Date.now() + 5 * 60 * 1000 };
   window.localStorage.setItem(OTP_KEY, JSON.stringify(state));
-  // Mock: log OTP to console instead of sending SMS
+  // Mock: log OTP to console instead of sending a message
   console.log(`[DEV] OTP for ${mobile} (Flat ${member.flatNo}): ${MOCK_OTP}`);
   return { flatNo: member.flatNo };
 }
@@ -814,14 +627,6 @@ export async function saveShareCertificateRegister(input: Omit<LocalShareCertifi
   });
   writeStore(store);
   return next;
-}
-
-export function duesForFlat(store: LocalStore, flatNo: number): LocalDues | null {
-  return (store.dues || []).find((d) => d.flatNo === flatNo) || null;
-}
-
-export function remindersForFlat(store: LocalStore, flatNo: number): LocalReminder[] {
-  return (store.reminders || []).filter((r) => r.flatNo === null || r.flatNo === flatNo);
 }
 
 export function sortedNotices(store: LocalStore): LocalNotice[] {

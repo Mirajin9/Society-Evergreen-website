@@ -15,6 +15,7 @@ export function PortalTopbar({ links, homeHref }: { links: PortalLink[]; homeHre
   const pathname = usePathname();
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
+  const showNotificationBell = homeHref.startsWith("/member");
 
   function isActive(href: string) {
     return pathname === href || (href !== homeHref && pathname.startsWith(href));
@@ -43,6 +44,17 @@ export function PortalTopbar({ links, homeHref }: { links: PortalLink[]; homeHre
             </Link>
           ))}
         </nav>
+        {showNotificationBell && (
+          <Link
+            href="/member/notices"
+            className="pub-nav-login"
+            title="Website notifications"
+            aria-label="Website notifications"
+            style={{ background: "rgba(255,255,255,0.14)", padding: "9px 10px" }}
+          >
+            <Icon name="bell" size={15} color="#fff" />
+          </Link>
+        )}
         <button onClick={logout} className="pub-nav-login" style={{ background: "rgba(255,255,255,0.14)" }}>
           <Icon name="lock" size={13} color="#fff" /> Logout
         </button>
@@ -56,6 +68,11 @@ export function PortalTopbar({ links, homeHref }: { links: PortalLink[]; homeHre
             {link.label}
           </Link>
         ))}
+        {showNotificationBell && (
+          <Link href="/member/notices" className="pub-nav-link" onClick={() => setMenuOpen(false)}>
+            Notifications
+          </Link>
+        )}
         <button className="pub-nav-login" onClick={() => { setMenuOpen(false); logout(); }}>
           <Icon name="lock" size={13} color="#fff" /> Logout
         </button>

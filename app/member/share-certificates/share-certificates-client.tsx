@@ -19,7 +19,7 @@ export function MemberShareCertificatesClient() {
       <header className="pub-page-header">
         <div className="eyebrow-pub">Member register</div>
         <h1>Share Certificates</h1>
-        <p className="ph-sub">View the MC-issued share certificate register. Downloads are disabled for this list.</p>
+        <p className="ph-sub">View the MC-issued share certificate register.</p>
       </header>
 
       <section className="pub-section" style={{ background: "#fff", paddingTop: 36, paddingBottom: 44 }}>
