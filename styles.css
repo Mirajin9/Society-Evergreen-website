@@ -1134,6 +1134,60 @@ label.fl { display: block; font-size: 12.5px; color: var(--ink-2); margin-bottom
   width: 96px;
 }
 
+/* Multi-photo posts: counters, thumbnails and delete controls */
+.gallery-photo-count {
+  position: absolute; top: 12px; right: 12px;
+  background: rgba(15,35,71,0.78); color: #fff;
+  font-size: 12px; font-weight: 600; letter-spacing: 0.02em;
+  padding: 4px 9px; border-radius: 999px;
+  backdrop-filter: blur(6px);
+}
+.gallery-thumbs {
+  display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px;
+}
+.gallery-thumb {
+  width: 52px; height: 52px; padding: 0; overflow: hidden;
+  border-radius: 6px; border: 2px solid transparent; cursor: pointer;
+  background: var(--navy-light); flex-shrink: 0; transition: border-color .12s;
+}
+.gallery-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.gallery-thumb:hover { border-color: var(--navy-mid); }
+.gallery-thumb.on { border-color: var(--saffron); }
+.gallery-card-media { position: relative; }
+.gallery-card-count {
+  position: absolute; top: 10px; right: 10px;
+  display: inline-flex; align-items: center; gap: 4px;
+  background: rgba(15,35,71,0.78); color: #fff;
+  font-size: 11.5px; font-weight: 600;
+  padding: 3px 8px; border-radius: 999px;
+  backdrop-filter: blur(6px);
+}
+.gallery-admin-cover { position: relative; width: 76px; }
+.gallery-count-badge {
+  position: absolute; top: -6px; right: -6px;
+  min-width: 20px; height: 20px; padding: 0 5px;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--saffron); color: #fff;
+  font-size: 11px; font-weight: 700; border-radius: 999px;
+  border: 2px solid #fff;
+}
+.gallery-admin-strip { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 9px; }
+.gallery-admin-chip {
+  position: relative; width: 46px; height: 46px;
+  border-radius: 5px; overflow: hidden; background: var(--panel);
+}
+.gallery-admin-chip img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.gallery-chip-del {
+  position: absolute; top: 2px; right: 2px;
+  width: 17px; height: 17px; padding: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: #c0392b; border: 1px solid #fff; border-radius: 999px;
+  cursor: pointer; line-height: 0;
+}
+.gallery-chip-del:hover { background: #a93226; }
+.gallery-chip-del:disabled { opacity: 0.5; cursor: default; }
+.gallery-del-btn { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+
 @media (max-width: 1060px) {
   .pub-topbar { padding: 0 20px; }
   .pub-topbar nav { display: none; }

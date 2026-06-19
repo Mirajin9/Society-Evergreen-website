@@ -28,6 +28,7 @@ export function Icon({ name, size = 16, color = "currentColor" }: { name: string
     arr_l: <><path d="M19 12H5M11 6l-6 6 6 6" {...stroke} /></>,
     leaf: <><path d="M5 19c0-9 6-15 15-15-1 12-7 17-15 17z" {...stroke} /><path d="M5 19c4-5 8-7 12-9" {...stroke} /></>,
     x: <><path d="M6 6l12 12M18 6 6 18" {...stroke} /></>,
+    trash: <><path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M6 7l1 13a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-13M10 11v6M14 11v6" {...stroke} /></>,
     plus: <><path d="M12 5v14M5 12h14" {...stroke} /></>,
     search: <><circle cx="11" cy="11" r="6.5" {...stroke} /><path d="m20 20-3.5-3.5" {...stroke} /></>,
     image: <><rect x="4" y="5" width="16" height="14" rx="2" {...stroke} /><circle cx="9" cy="10" r="1.6" {...stroke} /><path d="m7 17 4.2-4.2 3 3L16 14l3 3" {...stroke} /></>,
