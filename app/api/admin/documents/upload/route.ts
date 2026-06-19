@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { requireAdminFromRequest, routeError } from "@/app/lib/api-route";
 import { supabaseAdmin } from "@/app/lib/supabase-admin";
 
 export const runtime = "nodejs";
@@ -16,6 +17,7 @@ const categoryMap: Record<string, string> = {
 
 export async function POST(req: NextRequest) {
   try {
+    const user = await requireAdminFromRequest(req);
     const form = await req.formData();
     const file = form.get("file") as File | null;
     if (!file || file.size === 0) {
@@ -26,7 +28,7 @@ export async function POST(req: NextRequest) {
     const category = String(form.get("category") || "forms");
     const visibility = String(form.get("visibility") || "members");
     const description = String(form.get("description") || "");
-    const actor = String(form.get("actor") || "MC user");
+    const actor = user.email || String(form.get("actor") || "MC user");
     const code = `mc-${Date.now()}-${slug(file.name)}`;
     const storagePath = `${category}/${Date.now()}-${slug(file.name)}${extension(file.name)}`;
     const bytes = new Uint8Array(await file.arrayBuffer());
@@ -64,7 +66,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ document });
   } catch (error) {
-    return NextResponse.json({ error: error instanceof Error ? error.message : "Upload failed." }, { status: 500 });
+    return routeError(error);
   }
 }
 

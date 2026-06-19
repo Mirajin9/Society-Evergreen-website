@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { parseDocxRows } from "@/app/lib/docx";
+import { requireAdminFromRequest, routeError } from "@/app/lib/api-route";
 import { supabaseAdmin } from "@/app/lib/supabase-admin";
 import { parseXlsxRows } from "@/app/lib/xlsx";
 
@@ -7,6 +8,7 @@ export const runtime = "nodejs";
 
 export async function POST(req: NextRequest) {
   try {
+    const user = await requireAdminFromRequest(req);
     const form = await req.formData();
     const file = form.get("file") as File | null;
     if (!file || file.size === 0) {
@@ -16,7 +18,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Upload an .xlsx or .docx register file." }, { status: 400 });
     }
 
-    const actor = String(form.get("actor") || "MC user");
+    const actor = user.email || String(form.get("actor") || "MC user");
     const bytes = new Uint8Array(await file.arrayBuffer());
     const rows = /\.docx$/i.test(file.name)
       ? await parseDocxRows(bytes)
@@ -70,7 +72,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ uploadId: source.id, rowCount: parsed.rows.length });
   } catch (error) {
-    return NextResponse.json({ error: error instanceof Error ? error.message : "Could not import share certificates." }, { status: 500 });
+    return routeError(error);
   }
 }
 

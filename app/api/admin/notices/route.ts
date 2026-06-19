@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { requireAdminFromRequest, routeError } from "@/app/lib/api-route";
 import { supabaseAdmin } from "@/app/lib/supabase-admin";
 
 export const runtime = "nodejs";
@@ -13,6 +14,7 @@ const categoryMap: Record<string, string> = {
 
 export async function POST(req: NextRequest) {
   try {
+    const user = await requireAdminFromRequest(req);
     const input = await req.json();
     const title = String(input.title || "").trim();
     const body = String(input.body || "").trim();
@@ -23,7 +25,7 @@ export async function POST(req: NextRequest) {
     const targetFlatNos = Array.isArray(input.targetFlatNos)
       ? input.targetFlatNos.map(Number).filter(Boolean)
       : [];
-    const actor = String(input.actor || "MC user");
+    const actor = user.email || String(input.actor || "MC user");
     const supabase = supabaseAdmin();
     const { data: notice, error } = await supabase.from("notices").insert({
       code: `n-${Date.now()}`,
@@ -55,6 +57,6 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ notice });
   } catch (error) {
-    return NextResponse.json({ error: error instanceof Error ? error.message : "Could not publish notice." }, { status: 500 });
+    return routeError(error);
   }
 }

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { requireAdmin } from "@/backend/lib/rbac";
 import { supabaseForUser } from "@/backend/lib/supabase-server";
 
 export function supabaseFromRequest(req: Request) {
@@ -10,6 +11,11 @@ export function supabaseFromRequest(req: Request) {
     throw err;
   }
   return supabaseForUser(token);
+}
+
+export async function requireAdminFromRequest(req: Request) {
+  const supabase = supabaseFromRequest(req);
+  return requireAdmin(supabase);
 }
 
 export function routeError(error: unknown) {
