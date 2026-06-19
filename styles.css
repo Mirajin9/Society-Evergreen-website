@@ -690,17 +690,29 @@ label.fl { display: block; font-size: 12.5px; color: var(--ink-2); margin-bottom
   display: flex;
   flex-direction: column;
   justify-content: center;
+  background: linear-gradient(135deg, #061226 0%, #10284f 100%);
+}
+.pub-hero-gate::after {
+  content: "";
+  position: absolute;
+  inset: 28px 40px;
+  border: 1px solid rgba(255,255,255,0.16);
+  border-radius: 8px;
   background:
-    linear-gradient(90deg, rgba(6,18,38,0.9) 0%, rgba(6,18,38,0.72) 42%, rgba(6,18,38,0.24) 100%),
-    linear-gradient(0deg, rgba(0,0,0,0.3), rgba(0,0,0,0.1)),
-    url("/images/evergreen-front-gate.jpeg");
-  background-size: cover;
-  background-position: center center;
+    linear-gradient(90deg, rgba(6,18,38,0.9) 0%, rgba(6,18,38,0.74) 42%, rgba(6,18,38,0.18) 100%),
+    url("/images/evergreen-front-gate.jpeg") no-repeat right center / contain;
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,0.12);
+  pointer-events: none;
+}
+.pub-hero-gate > * {
+  position: relative;
+  z-index: 1;
 }
 .pub-hero::before {
   content: "";
   position: absolute; top: 0; left: 0; right: 0; height: 3px;
   background: var(--tricolor);
+  z-index: 2;
 }
 .pub-hero .eyebrow-pub {
   font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase;
@@ -1007,6 +1019,12 @@ label.fl { display: block; font-size: 12.5px; color: var(--ink-2); margin-bottom
   .pub-hamburger { display: flex; }
   .pub-hero, .pub-tiles-section, .pub-section, .pub-kpi-bar, .pub-page-header, .pub-footer { padding-left: 20px; padding-right: 20px; }
   .pub-hero { padding-top: 48px; padding-bottom: 48px; }
+  .pub-hero-gate::after {
+    inset: 18px;
+    background:
+      linear-gradient(90deg, rgba(6,18,38,0.9) 0%, rgba(6,18,38,0.74) 52%, rgba(6,18,38,0.28) 100%),
+      url("/images/evergreen-front-gate.jpeg") no-repeat center center / contain;
+  }
   .tile-grid { grid-template-columns: 1fr 1fr; }
   .pub-kpi-bar { grid-template-columns: 1fr 1fr; gap: 24px; padding: 28px 20px; }
   .pub-kpi { border-right: 0; padding: 0; text-align: left; }
