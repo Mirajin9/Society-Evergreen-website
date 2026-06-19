@@ -79,7 +79,7 @@ export default function HomePage() {
       </div>
 
       {/* Hero */}
-      <section className="pub-hero">
+      <section className="pub-hero pub-hero-gate">
         <div className="eyebrow-pub">Plot 9 · Sector 7 · Dwarka · New Delhi</div>
         <h1>Evergreen<br /><em>Apartments</em></h1>
         <p className="hero-sub">A transparent, connected, and resident-first society portal.</p>

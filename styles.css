@@ -685,6 +685,18 @@ label.fl { display: block; font-size: 12.5px; color: var(--ink-2); margin-bottom
   padding: 72px 40px 64px;
   position: relative; overflow: hidden; color: #fff;
 }
+.pub-hero-gate {
+  min-height: min(620px, calc(100vh - 64px));
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background:
+    linear-gradient(90deg, rgba(6,18,38,0.9) 0%, rgba(6,18,38,0.72) 42%, rgba(6,18,38,0.24) 100%),
+    linear-gradient(0deg, rgba(0,0,0,0.3), rgba(0,0,0,0.1)),
+    url("/images/evergreen-front-gate.jpeg");
+  background-size: cover;
+  background-position: center center;
+}
 .pub-hero::before {
   content: "";
   position: absolute; top: 0; left: 0; right: 0; height: 3px;
@@ -712,6 +724,10 @@ label.fl { display: block; font-size: 12.5px; color: var(--ink-2); margin-bottom
 .pub-hero .hero-desc {
   font-size: 15px; color: rgba(255,255,255,0.65);
   max-width: 580px; line-height: 1.65; margin: 0 0 36px;
+}
+.pub-hero-gate .hero-sub,
+.pub-hero-gate .hero-desc {
+  text-shadow: 0 1px 16px rgba(0,0,0,0.3);
 }
 .pub-hero .hero-cta {
   display: inline-flex; align-items: center; gap: 10px;
