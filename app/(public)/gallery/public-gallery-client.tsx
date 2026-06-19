@@ -2,12 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Icon, StatusBadge } from "@/app/components/ui";
-import {
-  ensureLocalStore,
-  sortedGalleryItems,
-  type GalleryCategory,
-  type LocalGalleryItem
-} from "@/app/lib/local-store";
+import { type GalleryCategory } from "@/app/lib/local-store";
 
 const categories: Array<{ value: "all" | GalleryCategory; label: string }> = [
   { value: "all", label: "All" },
@@ -18,15 +13,28 @@ const categories: Array<{ value: "all" | GalleryCategory; label: string }> = [
   { value: "community", label: "Community" }
 ];
 
+interface GalleryItem {
+  id: string;
+  title: string;
+  caption: string;
+  category: GalleryCategory;
+  eventDate: string;
+  imageName: string;
+  imageUrl: string;
+  featured: boolean;
+  publishedAt: string;
+}
+
 export function PublicGalleryClient() {
-  const [items, setItems] = useState<LocalGalleryItem[]>([]);
+  const [items, setItems] = useState<GalleryItem[]>([]);
   const [category, setCategory] = useState<"all" | GalleryCategory>("all");
   const [activeIndex, setActiveIndex] = useState(0);
 
   useEffect(() => {
-    ensureLocalStore().then((store) => {
-      setItems(sortedGalleryItems(store));
-    });
+    fetch("/api/gallery", { cache: "no-store" })
+      .then((res) => res.ok ? res.json() : { items: [] })
+      .then((payload) => setItems(payload.items || []))
+      .catch(() => setItems([]));
   }, []);
 
   const filtered = useMemo(() => {
@@ -79,7 +87,7 @@ export function PublicGalleryClient() {
           <>
             <div className="gallery-carousel">
               <div className="gallery-carousel-media">
-                <img src={active?.imageDataUrl} alt={active?.title || "Gallery image"} />
+                <img src={active?.imageUrl} alt={active?.title || "Gallery image"} />
                 <div className="gallery-carousel-controls">
                   <button className="btn-icon gallery-nav-btn" onClick={() => move(-1)} aria-label="Previous image" type="button">
                     <Icon name="arr_l" size={18} color="#fff" />
@@ -109,7 +117,7 @@ export function PublicGalleryClient() {
                   onClick={() => setActiveIndex(index)}
                   type="button"
                 >
-                  <img src={item.imageDataUrl} alt={item.title} />
+                  <img src={item.imageUrl} alt={item.title} />
                   <div className="gallery-card-copy">
                     <div className="gallery-card-title">{item.title}</div>
                     <div className="gallery-card-caption">{item.caption}</div>

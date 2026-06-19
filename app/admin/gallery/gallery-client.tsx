@@ -2,14 +2,7 @@
 
 import { FormEvent, useEffect, useState } from "react";
 import { Icon, PageHead, StatusBadge } from "@/app/components/ui";
-import {
-  addGalleryItem,
-  ensureLocalStore,
-  sortedGalleryItems,
-  type GalleryCategory,
-  type LocalGalleryItem,
-  type LocalStore
-} from "@/app/lib/local-store";
+import { getSession, type GalleryCategory } from "@/app/lib/local-store";
 
 const categories: Array<{ value: GalleryCategory; label: string }> = [
   { value: "activities", label: "Activities" },
@@ -19,14 +12,44 @@ const categories: Array<{ value: GalleryCategory; label: string }> = [
   { value: "community", label: "Community" }
 ];
 
+interface GalleryItem {
+  id: string;
+  title: string;
+  caption: string;
+  category: GalleryCategory;
+  eventDate: string;
+  imageName: string;
+  mimeType: string;
+  sizeBytes: number;
+  imageUrl: string;
+  featured: boolean;
+  publishedAt: string;
+}
+
 export function AdminGalleryClient() {
-  const [store, setStore] = useState<LocalStore | null>(null);
+  const [galleryItems, setGalleryItems] = useState<GalleryItem[]>([]);
+  const [loading, setLoading] = useState(true);
   const [notice, setNotice] = useState("");
   const [error, setError] = useState("");
 
   useEffect(() => {
-    ensureLocalStore().then(setStore);
+    loadGallery();
   }, []);
+
+  async function loadGallery() {
+    setLoading(true);
+    setError("");
+    try {
+      const res = await fetch("/api/gallery", { cache: "no-store" });
+      const payload = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(payload.error || "Could not load gallery.");
+      setGalleryItems(payload.items || []);
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setLoading(false);
+    }
+  }
 
   async function publish(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -54,26 +77,22 @@ export function AdminGalleryClient() {
       return;
     }
 
-    const item = await addGalleryItem({
-      title,
-      caption,
-      category: String(form.get("category") || "activities") as GalleryCategory,
-      eventDate: String(form.get("eventDate") || new Date().toISOString().slice(0, 10)),
-      imageName: file.name,
-      mimeType: file.type || "image/jpeg",
-      sizeBytes: file.size,
-      imageDataUrl: await readAsDataUrl(file),
-      featured: form.get("featured") === "on"
-    });
-    const next = await ensureLocalStore();
-    setStore({ ...next });
-    setNotice(`${item.title} posted to the public gallery.`);
-    event.currentTarget.reset();
+    const session = getSession();
+    form.set("actor", session ? `${session.username} / Flat ${session.flatNo}` : "MC user");
+    try {
+      const res = await fetch("/api/admin/gallery", { method: "POST", body: form });
+      const payload = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(payload.error || "Could not publish gallery image.");
+      setGalleryItems((current) => [payload.item, ...current].sort(sortGalleryItems));
+      setNotice(`${payload.item.title} posted to the public gallery.`);
+      event.currentTarget.reset();
+    } catch (err) {
+      setError((err as Error).message);
+    }
   }
 
-  if (!store) return <div className="loading-pad">Loading gallery...</div>;
+  if (loading) return <div className="loading-pad">Loading gallery...</div>;
 
-  const galleryItems = sortedGalleryItems(store);
   const featuredCount = galleryItems.filter((item) => item.featured).length;
 
   return (
@@ -139,12 +158,12 @@ export function AdminGalleryClient() {
                 {galleryItems.map((item) => (
                   <tr key={item.id}>
                     <td>
-                      <img className="gallery-admin-thumb" src={item.imageDataUrl} alt={item.title} />
+                      <img className="gallery-admin-thumb" src={item.imageUrl} alt={item.title} />
                     </td>
                     <td>
                       <div style={{ fontWeight: 600 }}>{item.title}</div>
                       <div style={{ color: "var(--muted)", fontSize: 12, marginTop: 4 }}>{item.caption.slice(0, 100)}{item.caption.length > 100 ? "..." : ""}</div>
-                      <div className="mono" style={{ color: "var(--muted)", fontSize: 11, marginTop: 4 }}>{item.imageName} - {formatSize(item.sizeBytes)}</div>
+                      <div className="mono" style={{ color: "var(--muted)", fontSize: 11, marginTop: 4 }}>{item.imageName} - {formatSize(item.sizeBytes || 0)}</div>
                     </td>
                     <td>{labelForCategory(item.category)}</td>
                     <td>{new Date(`${item.eventDate}T00:00:00`).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</td>
@@ -165,17 +184,13 @@ function labelForCategory(category: GalleryCategory) {
   return categories.find((item) => item.value === category)?.label || category;
 }
 
-function readAsDataUrl(file: File) {
-  return new Promise<string>((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result));
-    reader.onerror = () => reject(reader.error || new Error("Could not read file"));
-    reader.readAsDataURL(file);
-  });
-}
-
 function formatSize(bytes: number) {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
   return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+}
+
+function sortGalleryItems(a: GalleryItem, b: GalleryItem) {
+  if (a.featured !== b.featured) return a.featured ? -1 : 1;
+  return new Date(b.eventDate).getTime() - new Date(a.eventDate).getTime();
 }
