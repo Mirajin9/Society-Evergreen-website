@@ -7,9 +7,6 @@ export const metadata: Metadata = {
   description: "Official society portal for Evergreen Apartment CGHS Ltd."
 };
 
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
-
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" data-card-style="soft">
