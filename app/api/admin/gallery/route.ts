@@ -6,7 +6,7 @@ export const runtime = "nodejs";
 const BUCKET = "public-assets";
 const INDEX_PATH = "gallery/index.json";
 const CATEGORIES = new Set(["activities", "visits", "celebrations", "maintenance", "community"]);
-const MAX_IMAGE_SIZE = 4_000_000;
+const MAX_IMAGE_SIZE = 8_000_000;
 
 export async function POST(req: NextRequest) {
   try {
@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Gallery uploads must be image files." }, { status: 400 });
     }
     if (file.size > MAX_IMAGE_SIZE) {
-      return NextResponse.json({ error: "Keep gallery images below 4 MB." }, { status: 400 });
+      return NextResponse.json({ error: "Keep gallery images and GIFs below 8 MB." }, { status: 400 });
     }
 
     const supabase = supabaseAdmin();

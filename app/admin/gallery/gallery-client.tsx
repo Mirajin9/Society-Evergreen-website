@@ -72,8 +72,8 @@ export function AdminGalleryClient() {
       setError("Gallery uploads must be image files.");
       return;
     }
-    if (file.size > 4_000_000) {
-      setError("Keep gallery images below 4 MB for this rollout.");
+    if (file.size > 8_000_000) {
+      setError("Keep gallery images and GIFs below 8 MB.");
       return;
     }
 
@@ -127,8 +127,8 @@ export function AdminGalleryClient() {
             </div>
             <div>
               <label className="fl">Image</label>
-              <input className="field" name="image" type="file" accept="image/png,image/jpeg,image/webp" required />
-              <div className="auth-note">Use JPG, PNG or WebP. Public visitors will see the image and caption.</div>
+              <input className="field" name="image" type="file" accept="image/png,image/jpeg,image/webp,image/gif" required />
+              <div className="auth-note">Use JPG, PNG, WebP or GIF. Public visitors will see the image and caption.</div>
             </div>
             <div>
               <label className="fl">Caption</label>
