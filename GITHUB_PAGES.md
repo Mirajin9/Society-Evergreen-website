@@ -16,11 +16,7 @@ git push -u origin main
 4. Go to **Pages**.
 5. Under **Build and deployment**, set **Source** to **GitHub Actions**.
 
-After the first push, the included workflow deploys these static demo files:
-
-- `index.html`
-- `styles.css`
-- the root `*.jsx` prototype files
+After the first push, the included workflow builds the Next.js app as a static export and deploys the generated `out/` folder.
 
 ## Important privacy note
 
@@ -28,4 +24,4 @@ The raw `uploads/` folder is intentionally ignored by Git so the original member
 
 ## About the Next.js app
 
-The newer Next.js app under `app/` includes API routes and backend wiring, so it is better suited to a host like Vercel, Netlify, or a server-backed deployment. GitHub Pages is static-only, so the included Pages workflow publishes the browser-only prototype.
+GitHub Pages is static-only, so the workflow uses demo data, removes server-only API routes during the CI build, and exports the browser-ready Next.js pages.
