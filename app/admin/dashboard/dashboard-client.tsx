@@ -13,6 +13,12 @@ const primaryActions = [
     desc: "Post a new notice for all members or selected flats. Members will see it on the website notification bell and notices page."
   },
   {
+    href: "/admin/gallery",
+    icon: "image",
+    title: "Post Gallery Photos",
+    desc: "Upload public photos with captions for activities, visits, celebrations and community updates."
+  },
+  {
     href: "/admin/records",
     icon: "folder",
     title: "Upload AGM Minutes",

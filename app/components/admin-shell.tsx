@@ -8,6 +8,7 @@ import { logoutLocal } from "@/app/lib/local-store";
 const ADMIN_LINKS = [
   { href: "/admin/dashboard", label: "Dashboard", icon: "home" },
   { href: "/admin/notices", label: "Notices", icon: "bell" },
+  { href: "/admin/gallery", label: "Gallery", icon: "image" },
   { href: "/admin/records", label: "Upload Records", icon: "folder" },
   { href: "/admin/share-certificates", label: "Share Certificates", icon: "doc" },
   { href: "/admin/members", label: "Member List", icon: "users" }

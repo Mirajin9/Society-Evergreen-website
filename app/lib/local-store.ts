@@ -66,6 +66,7 @@ export interface LocalShareCertificateRegister {
 }
 
 export type NoticeCategory = "general" | "maintenance" | "agm" | "urgent" | "event";
+export type GalleryCategory = "activities" | "visits" | "celebrations" | "maintenance" | "community";
 
 export interface LocalNotice {
   id: string;
@@ -75,6 +76,20 @@ export interface LocalNotice {
   category: NoticeCategory;
   pinned: boolean;
   targetFlatNos: number[] | null; // null = all members
+}
+
+export interface LocalGalleryItem {
+  id: string;
+  title: string;
+  caption: string;
+  category: GalleryCategory;
+  eventDate: string;       // ISO date
+  imageName: string;
+  mimeType: string;
+  sizeBytes: number;
+  imageDataUrl: string;
+  featured: boolean;
+  publishedAt: string;     // ISO datetime
 }
 
 export interface AgmRecord {
@@ -131,6 +146,7 @@ export interface LocalStore {
   shareCertificateRegister: LocalShareCertificateRegister | null;
   records: Array<{ key: string; label: string; defaultVisibility: LocalVisibility; description: string }>;
   notices: LocalNotice[];
+  galleryItems: LocalGalleryItem[];
   agms: AgmRecord[];
   changeRequests: ChangeRequest[];
   auditLogs: LocalAuditLog[];
@@ -145,7 +161,7 @@ export interface LocalSession {
 
 const STORE_KEY = "evergreen.localStore.v1";
 const SESSION_KEY = "evergreen.localSession.v1";
-const CURRENT_VERSION = 9;
+const CURRENT_VERSION = 10;
 
 const MC_ROLES_BY_FLAT: Record<number, string> = {
   157: "President",
@@ -166,6 +182,8 @@ const recordCategories = [
 const defaultEvents: LocalEvent[] = [];
 
 const defaultNotices: LocalNotice[] = [];
+
+const defaultGalleryItems: LocalGalleryItem[] = [];
 
 const defaultAgms: AgmRecord[] = [];
 
@@ -220,6 +238,7 @@ async function loadStore(): Promise<LocalStore> {
     shareCertificateRegister: null,
     records: makeRecordCategories(),
     notices: defaultNotices,
+    galleryItems: defaultGalleryItems,
     agms: defaultAgms,
     changeRequests: [],
     auditLogs: [
@@ -297,6 +316,10 @@ function migrateStore(store: LocalStore, seed: typeof DEMO_SEED): LocalStore {
       ...notice,
       targetFlatNos: notice.targetFlatNos === undefined ? null : notice.targetFlatNos
     }));
+  }
+  if (!Array.isArray((next as Partial<LocalStore>).galleryItems)) {
+    next.galleryItems = defaultGalleryItems;
+    changed = true;
   }
   if (!Array.isArray(next.agms)) {
     next.agms = defaultAgms;
@@ -611,6 +634,24 @@ export async function addNotice(notice: Omit<LocalNotice, "id" | "date" | "targe
   return next;
 }
 
+export async function addGalleryItem(item: Omit<LocalGalleryItem, "id" | "publishedAt">) {
+  const store = await ensureLocalStore();
+  const next: LocalGalleryItem = {
+    ...item,
+    id: `gal-${Date.now()}`,
+    publishedAt: new Date().toISOString()
+  };
+  store.galleryItems = [next, ...(store.galleryItems || [])];
+  appendAudit(store, {
+    action: "gallery.published",
+    targetType: "gallery_item",
+    targetLabel: next.title,
+    details: `${next.imageName} published in ${next.category}.`
+  });
+  writeStore(store);
+  return next;
+}
+
 export async function saveShareCertificateRegister(input: Omit<LocalShareCertificateRegister, "id" | "uploadedAt">) {
   const store = await ensureLocalStore();
   const next: LocalShareCertificateRegister = {
@@ -633,6 +674,13 @@ export function sortedNotices(store: LocalStore): LocalNotice[] {
   return [...(store.notices || [])].sort((a, b) => {
     if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
     return new Date(b.date).getTime() - new Date(a.date).getTime();
+  });
+}
+
+export function sortedGalleryItems(store: LocalStore): LocalGalleryItem[] {
+  return [...(store.galleryItems || [])].sort((a, b) => {
+    if (a.featured !== b.featured) return a.featured ? -1 : 1;
+    return new Date(b.eventDate).getTime() - new Date(a.eventDate).getTime();
   });
 }
 

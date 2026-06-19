@@ -30,6 +30,7 @@ export function Icon({ name, size = 16, color = "currentColor" }: { name: string
     x: <><path d="M6 6l12 12M18 6 6 18" {...stroke} /></>,
     plus: <><path d="M12 5v14M5 12h14" {...stroke} /></>,
     search: <><circle cx="11" cy="11" r="6.5" {...stroke} /><path d="m20 20-3.5-3.5" {...stroke} /></>,
+    image: <><rect x="4" y="5" width="16" height="14" rx="2" {...stroke} /><circle cx="9" cy="10" r="1.6" {...stroke} /><path d="m7 17 4.2-4.2 3 3L16 14l3 3" {...stroke} /></>,
     dl: <><path d="M12 4v12m0 0-4-4m4 4 4-4M4 20h16" {...stroke} /></>,
     audit: <><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" {...stroke} /><rect x="9" y="3" width="6" height="4" rx="1" {...stroke} /><path d="M9 12h6M9 16h4" {...stroke} /></>,
     meeting: <><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" {...stroke} /><circle cx="9" cy="7" r="4" {...stroke} /><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" {...stroke} /></>,
@@ -77,6 +78,7 @@ export function PublicTopbar() {
     { href: "/about", label: "About Us" },
     { href: "/downloads", label: "Downloads" },
     { href: "/sale-inquiry", label: "Sale Inquiry" },
+    { href: "/gallery", label: "Gallery" },
     { href: "/committee", label: "MC Committee" }
   ];
   return (
@@ -151,6 +153,7 @@ export function PublicFooter() {
         <Link href="/about">About Us</Link>
         <Link href="/downloads">Downloads</Link>
         <Link href="/sale-inquiry">Sale Inquiry</Link>
+        <Link href="/gallery">Gallery</Link>
         <Link href="/committee">MC Committee</Link>
       </div>
       <div>
