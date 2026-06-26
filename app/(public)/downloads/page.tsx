@@ -2,8 +2,8 @@ import { Icon } from "@/app/components/ui";
 import Link from "next/link";
 
 export const metadata = {
-  title: "Downloads - Evergreen Apartments",
-  description: "Public documents, forms, and DCS reference material for Evergreen Apartments CGHS Ltd."
+  title: "Downloads - Evergreen Apartment",
+  description: "Public documents, forms, and DCS reference material for Evergreen Apartment CGHS Ltd."
 };
 
 type DownloadItem = {
@@ -22,8 +22,8 @@ const CATEGORIES: Array<{ title: string; items: DownloadItem[] }> = [
       { title: "Form 20 - Membership Application", desc: "Application of membership for transfer or purchase cases", date: "PDF", href: "/files/form-20.pdf" },
       { title: "Form 21", desc: "Statutory form for society membership / transfer records", date: "PDF", href: "/files/form-21.pdf" },
       { title: "Nomination Form", desc: "Nomination form for member records", date: "PDF", href: "/files/nomination-form.pdf" },
-      { title: "No-Dues Certificate Request Form", desc: "Request form for obtaining no-dues certificate from society", date: "Available at office" },
-      { title: "Share Certificate Request Form", desc: "Application to obtain or reissue society share certificate", date: "Available at office" }
+      { title: "Share Certificate Request Form", desc: "Application to obtain or reissue society share certificate", date: "Available at office" },
+      { title: "Prerequisites for Share Certificate", desc: "Required documents and steps for share certificate requests", date: "Placeholder" }
     ]
   },
   {
@@ -49,16 +49,14 @@ const CATEGORIES: Array<{ title: string; items: DownloadItem[] }> = [
   {
     title: "Society Bye-Laws & Documents",
     items: [
-      { title: "Evergreen Apartments Bye-Laws", desc: "Registered bye-laws of Evergreen Apartments CGHS Ltd.", date: "DOCX", href: "/files/evergreen-cghs-bye-laws.docx" },
+      { title: "Evergreen Apartment Bye-Laws", desc: "Registered bye-laws of Evergreen Apartment CGHS Ltd.", date: "DOCX", href: "/files/evergreen-cghs-bye-laws.docx" },
       { title: "Society Registration Certificate", desc: "Certificate of registration from Registrar of Cooperative Societies", date: "Contact office" }
     ]
   },
   {
     title: "Other Reference Documents",
     items: [
-      { title: "Maintenance Calculation Basis", desc: "Basis and methodology for society maintenance charge calculation", date: "Contact office" },
-      { title: "Vehicle Update Form", desc: "Form for updating vehicle details maintained by the society", date: "Contact office" },
-      { title: "Visitor & Security Guidelines", desc: "Society rules for visitors, security, and MyGate app access", date: "Contact office" }
+      { title: "Visitor & Security Guidelines", desc: "Society rules for visitors, security, and MyGate app access", date: "To be shared" }
     ]
   }
 ];

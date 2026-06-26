@@ -28,6 +28,7 @@ export interface LocalCredential {
   flatNo: number;
   password: string;
   roles: LocalRole[];
+  staffLabel?: string;
   isGeneratedFallback?: boolean;
   note?: string;
 }
@@ -161,15 +162,29 @@ export interface LocalSession {
 
 const STORE_KEY = "evergreen.localStore.v1";
 const SESSION_KEY = "evergreen.localSession.v1";
-const CURRENT_VERSION = 10;
+const CURRENT_VERSION = 11;
 
 const MC_ROLES_BY_FLAT: Record<number, string> = {
+  26: "MC Member",
   157: "President",
   133: "Vice President",
   113: "Secretary",
+  104: "MC Member",
   99: "Treasurer",
   111: "MC Member"
 };
+
+const STAFF_CREDENTIALS: LocalCredential[] = [
+  {
+    username: "kumar.sanu",
+    flatNo: 0,
+    password: "MC@Kumar2026",
+    roles: ["admin"],
+    staffLabel: "Staff - employed by MC",
+    isGeneratedFallback: true,
+    note: "Kumar Sanu staff account. Share directly with the MC-employed staff member."
+  }
+];
 
 const recordCategories = [
   ["agm", "AGM / General Body Records", "members", "AGM notices, agendas, minutes, resolutions and annexures."],
@@ -391,7 +406,7 @@ function makeRecordCategories() {
 }
 
 function makeCredentials(members: LocalMember[]): LocalCredential[] {
-  return members.map((member) => {
+  const memberCredentials = members.map((member) => {
     const roles: LocalRole[] = member.committeeRole ? ["member", "admin"] : ["member"];
     const mobile = primaryMobile(member);
     const membership = member.membershipNo?.trim();
@@ -421,6 +436,7 @@ function makeCredentials(members: LocalMember[]): LocalCredential[] {
             : "Initial username is registered mobile; initial password is membership number."
     };
   });
+  return [...memberCredentials, ...STAFF_CREDENTIALS];
 }
 
 function primaryMobile(member: LocalMember) {

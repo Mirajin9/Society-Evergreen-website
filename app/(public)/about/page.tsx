@@ -2,8 +2,8 @@ import Link from "next/link";
 import { Icon } from "@/app/components/ui";
 
 export const metadata = {
-  title: "About Us — Evergreen Apartments",
-  description: "Society incorporation details, history, and registration information for Evergreen Apartments CGHS Ltd."
+  title: "About Us — Evergreen Apartment",
+  description: "Society incorporation details, history, and registration information for Evergreen Apartment CGHS Ltd."
 };
 
 export default function AboutPage() {
@@ -12,7 +12,7 @@ export default function AboutPage() {
       {/* Page Header */}
       <div className="pub-page-header">
         <div className="eyebrow-pub">Society Information</div>
-        <h1>About Evergreen Apartments</h1>
+        <h1>About Evergreen Apartment</h1>
         <p className="ph-sub">Cooperative Group Housing Society Ltd. · Sector 7, Dwarka · New Delhi</p>
       </div>
 
@@ -25,7 +25,7 @@ export default function AboutPage() {
             </div>
             <h2 style={{ marginBottom: 16 }}>A cooperative community since 1998.</h2>
             <p className="lead">
-              Evergreen Apartments Cooperative Group Housing Society Ltd. is a registered cooperative
+              Evergreen Apartment Cooperative Group Housing Society Ltd. is a registered cooperative
               group housing society located at Plot 9, Sector 7, Dwarka, New Delhi — one of Delhi's
               well-established residential enclaves.
             </p>
@@ -51,7 +51,7 @@ export default function AboutPage() {
               </div>
               <div className="stack">
                 {[
-                  { label: "Full name", value: "Evergreen Apartments Cooperative Group Housing Society Ltd." },
+                  { label: "Full name", value: "Evergreen Apartment Cooperative Group Housing Society Ltd." },
                   { label: "Registration number", value: "837" },
                   { label: "Registered with", value: "Registrar of Cooperative Societies (RCS), Delhi" },
                   { label: "Type", value: "Cooperative Group Housing Society (CGHS)" },
@@ -81,7 +81,7 @@ export default function AboutPage() {
           <div className="info-card">
             <h4>Governing Act</h4>
             <p style={{ fontSize: 13.5, color: "var(--ink-2)", lineHeight: 1.65, margin: 0 }}>
-              Evergreen Apartments operates under the Delhi Cooperative Societies Act, 2003,
+              Evergreen Apartment operates under the Delhi Cooperative Societies Act, 2003,
               and the Delhi Cooperative Societies Rules, 2007. These laws govern the registration,
               management, and dissolution of cooperative societies in Delhi.
             </p>
@@ -143,12 +143,12 @@ export default function AboutPage() {
             </ul>
           </div>
           <div className="info-card">
-            <h4>Transfer Procedure</h4>
+            <h4>Amenities &amp; Convenience</h4>
             <ul>
-              <li>Transfer of flat requires MC approval</li>
-              <li>Transfer forms available in Downloads section</li>
-              <li>No-dues certificate required from society</li>
-              <li>Applicable share transfer fees as per bylaws</li>
+              <li>MyGate app access for visitor and gate convenience</li>
+              <li>24x7 security coordination at the society entrance</li>
+              <li>Society office support for member records</li>
+              <li>Member portal access for notices and documents</li>
             </ul>
           </div>
           <div className="info-card">

@@ -535,7 +535,7 @@ const MEMBERS = [
     "status": "Active",
     "login": "Enabled",
     "lastLogin": "Today",
-    "committee": null,
+    "committee": "MC Member",
     "vehicleNumber": null
   },
   {
@@ -2095,7 +2095,7 @@ const MEMBERS = [
     "status": "Active",
     "login": "Enabled",
     "lastLogin": "4 days ago",
-    "committee": null,
+    "committee": "MC Member",
     "vehicleNumber": "DL9CAY 7670/DL2CBC 5023"
   },
   {

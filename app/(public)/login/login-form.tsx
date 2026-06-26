@@ -49,7 +49,7 @@ export function LoginForm() {
       <div className="otp-form-wrap">
         <form className="otp-form" onSubmit={handleLogin}>
           <div style={{ fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--saffron)", fontWeight: 600, marginBottom: 12 }}>
-            Evergreen Apartments
+            Evergreen Apartment
           </div>
           <h1>Member Login</h1>
           <p className="otp-sub">

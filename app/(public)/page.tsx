@@ -59,6 +59,14 @@ const TILES = [
     href: "/member/share-certificates"
   },
   {
+    id: "mygate",
+    icon: "phone",
+    title: "MyGate",
+    desc: "Download the MyGate app for visitor pre-approval, staff tracking, and gate convenience.",
+    href: "https://mygate.com/dl/home/",
+    external: true
+  },
+  {
     id: "forms",
     icon: "form",
     title: "Forms & DCS Info",
@@ -81,10 +89,10 @@ export default function HomePage() {
       {/* Hero */}
       <section className="pub-hero pub-hero-gate">
         <div className="eyebrow-pub">Plot 9 · Sector 7 · Dwarka · New Delhi</div>
-        <h1>Evergreen<br /><em>Apartments</em></h1>
+        <h1>Evergreen<br /><em>Apartment</em></h1>
         <p className="hero-sub">A transparent, connected, and resident-first society portal.</p>
         <p className="hero-desc">
-          Evergreen Apartments brings society information, official records, notices, circulars,
+          Evergreen Apartment brings society information, official records, notices, circulars,
           and member services into one simple digital platform — helping residents access important
           updates and documents securely.
         </p>
@@ -127,22 +135,34 @@ export default function HomePage() {
       <section className="pub-tiles-section">
         <h2>Society Documents &amp; Records</h2>
         <p className="section-sub">
-          Member login required to access documents. Click any tile to log in and view.
+          Member login is required for society documents. MyGate opens the official app download page.
         </p>
         <div className="tile-grid">
           {TILES.map((tile) => (
-            <Link key={tile.id} href={`/login?next=${tile.href}`} className="tile-card">
-              <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
-                <div className="tile-icon">
-                  <Icon name={tile.icon} size={20} color="var(--navy)" />
+            tile.external ? (
+              <a key={tile.id} href={tile.href} target="_blank" rel="noopener noreferrer" className="tile-card">
+                <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
+                  <div className="tile-icon">
+                    <Icon name={tile.icon} size={20} color="var(--navy)" />
+                  </div>
                 </div>
-                <div className="tile-lock">
-                  <Icon name="lock" size={11} color="var(--saffron)" />
+                <div className="tile-title">{tile.title}</div>
+                <p className="tile-desc">{tile.desc}</p>
+              </a>
+            ) : (
+              <Link key={tile.id} href={`/login?next=${tile.href}`} className="tile-card">
+                <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
+                  <div className="tile-icon">
+                    <Icon name={tile.icon} size={20} color="var(--navy)" />
+                  </div>
+                  <div className="tile-lock">
+                    <Icon name="lock" size={11} color="var(--saffron)" />
+                  </div>
                 </div>
-              </div>
-              <div className="tile-title">{tile.title}</div>
-              <p className="tile-desc">{tile.desc}</p>
-            </Link>
+                <div className="tile-title">{tile.title}</div>
+                <p className="tile-desc">{tile.desc}</p>
+              </Link>
+            )
           ))}
         </div>
       </section>
@@ -152,11 +172,11 @@ export default function HomePage() {
         <div className="grid g-12-8" style={{ gap: 48, alignItems: "start" }}>
           <div>
             <div style={{ fontSize: 11, letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--saffron)", fontWeight: 600, marginBottom: 14 }}>
-              About Evergreen Apartments
+              About Evergreen Apartment
             </div>
             <h2 style={{ marginBottom: 16 }}>A society built on transparency and trust.</h2>
             <p className="lead">
-              Evergreen Apartments Cooperative Group Housing Society Ltd. is located at Plot 9,
+              Evergreen Apartment Cooperative Group Housing Society Ltd. is located at Plot 9,
               Sector 7, Dwarka, New Delhi 110075. The society was incorporated under the Delhi
               Cooperative Societies Act and has been serving residents since 1998.
             </p>
@@ -185,8 +205,8 @@ export default function HomePage() {
                 ))}
               </div>
               <div style={{ marginTop: 20, paddingTop: 16, borderTop: "1px solid var(--line)" }}>
-                <Link href="/sale-inquiry" style={{ display: "inline-flex", alignItems: "center", gap: 8, color: "var(--navy)", fontWeight: 500, fontSize: 13.5, textDecoration: "none" }}>
-                  Interested in buying or renting? <Icon name="arr_r" size={13} color="var(--navy)" />
+                <Link href="/amenities" style={{ display: "inline-flex", alignItems: "center", gap: 8, color: "var(--navy)", fontWeight: 500, fontSize: 13.5, textDecoration: "none" }}>
+                  View society amenities <Icon name="arr_r" size={13} color="var(--navy)" />
                 </Link>
               </div>
             </div>

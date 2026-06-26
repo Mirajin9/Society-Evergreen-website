@@ -22,7 +22,7 @@ export function AdminDatabaseClient() {
         <div className="grid g4">
           <KPI label="Members" value={store.members.length} sub="Imported from prototype member list" />
           <KPI label="Credentials" value={store.credentials.length} sub="Mobile + membership rollout" />
-          <KPI label="Admin users" value={adminCreds.length} sub="MC accounts" />
+          <KPI label="Admin users" value={adminCreds.length} sub="MC/staff accounts" />
           <KPI label="Audit logs" value={(store.auditLogs || []).length} sub="Tracked local actions" />
         </div>
         <div className="grid g2" style={{ marginTop: 24 }}>
@@ -45,7 +45,7 @@ export function AdminDatabaseClient() {
                     <tr key={`${credential.username}-${credential.flatNo}`}>
                       <td className="mono">{credential.username}</td>
                       <td className="mono">{credential.password}</td>
-                      <td>{credential.flatNo}</td>
+                      <td>{credential.staffLabel || credential.flatNo}</td>
                       <td>{credential.roles.map((role) => <StatusBadge key={role} status={role} />)}</td>
                     </tr>
                   ))}
@@ -64,10 +64,10 @@ export function AdminDatabaseClient() {
             <tbody>
               {memberCreds.map((credential) => (
                 <tr key={`${credential.username}-${credential.flatNo}`}>
-                  <td>{credential.flatNo}</td>
+                  <td>{credential.staffLabel || credential.flatNo}</td>
                   <td className="mono">{credential.username}</td>
                   <td className="mono">{credential.password}</td>
-                  <td>{credential.roles.includes("admin") ? "MC/Admin" : "Member"}</td>
+                  <td>{credential.staffLabel ? "Staff/Admin" : credential.roles.includes("admin") ? "MC/Admin" : "Member"}</td>
                   <td style={{ color: credential.isGeneratedFallback ? "var(--rust)" : "var(--muted)", fontSize: 12 }}>
                     {credential.note || "-"}
                   </td>

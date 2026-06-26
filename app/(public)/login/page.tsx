@@ -2,8 +2,8 @@ import { Suspense } from "react";
 import { LoginForm } from "./login-form";
 
 export const metadata = {
-  title: "Member Login — Evergreen Apartments",
-  description: "Login with your registered mobile number to access the Evergreen Apartments member portal."
+  title: "Member Login — Evergreen Apartment",
+  description: "Login with your registered mobile number to access the Evergreen Apartment member portal."
 };
 
 export default function LoginPage() {

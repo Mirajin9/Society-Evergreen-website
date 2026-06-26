@@ -78,7 +78,7 @@ export function PublicTopbar() {
     { href: "/", label: "Home" },
     { href: "/about", label: "About Us" },
     { href: "/downloads", label: "Downloads" },
-    { href: "/sale-inquiry", label: "Sale Inquiry" },
+    { href: "/amenities", label: "Amenities" },
     { href: "/gallery", label: "Gallery" },
     { href: "/committee", label: "MC Committee" }
   ];
@@ -129,7 +129,7 @@ export function PubLogo() {
         <path d="M11 28 Q 18 22, 26 16" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="1" />
       </svg>
       <div style={{ lineHeight: 1.2 }}>
-        <div style={{ fontSize: 15, fontWeight: 600, color: "#fff", fontFamily: "var(--font-body)" }}>Evergreen Apartments</div>
+        <div style={{ fontSize: 15, fontWeight: 600, color: "#fff", fontFamily: "var(--font-body)" }}>Evergreen Apartment</div>
         <div style={{ fontSize: 9.5, color: "rgba(255,255,255,0.55)", letterSpacing: "0.1em", textTransform: "uppercase", marginTop: 1 }}>
           CGHS Ltd · Sector 7, Dwarka
         </div>
@@ -142,7 +142,7 @@ export function PublicFooter() {
   return (
     <footer className="pub-footer">
       <div>
-        <div className="foot-brand">Evergreen <em style={{ fontStyle: "italic" }}>Apartments</em></div>
+        <div className="foot-brand">Evergreen <em style={{ fontStyle: "italic" }}>Apartment</em></div>
         <div className="foot-addr">
           Plot 9, Sector 7, Dwarka<br />New Delhi 110075<br />
           Regd. No. 837 · Est. 1998
@@ -153,7 +153,7 @@ export function PublicFooter() {
         <Link href="/">Home</Link>
         <Link href="/about">About Us</Link>
         <Link href="/downloads">Downloads</Link>
-        <Link href="/sale-inquiry">Sale Inquiry</Link>
+        <Link href="/amenities">Amenities</Link>
         <Link href="/gallery">Gallery</Link>
         <Link href="/committee">MC Committee</Link>
       </div>
@@ -170,7 +170,7 @@ export function PublicFooter() {
         </span>
       </div>
       <div className="foot-copy">
-        © {new Date().getFullYear()} Evergreen Apartments Cooperative Group Housing Society Ltd. All rights reserved.
+        © {new Date().getFullYear()} Evergreen Apartment Cooperative Group Housing Society Ltd. All rights reserved.
       </div>
     </footer>
   );

@@ -1,8 +1,8 @@
 import { Icon } from "@/app/components/ui";
 
 export const metadata = {
-  title: "MC Committee — Evergreen Apartments",
-  description: "Current Management Committee members of Evergreen Apartments Cooperative Group Housing Society Ltd."
+  title: "MC Committee — Evergreen Apartment",
+  description: "Current Management Committee members of Evergreen Apartment Cooperative Group Housing Society Ltd."
 };
 
 const MC_MEMBERS = [
@@ -40,6 +40,30 @@ const MC_MEMBERS = [
     phone: "Contact society office",
     email: null,
     displayOrder: 5
+  },
+  {
+    name: "Mr. Anil Joshi",
+    designation: "MC Member",
+    phone: "Contact society office",
+    email: null,
+    displayOrder: 6
+  },
+  {
+    name: "Mr. Bikram S Rawat",
+    designation: "MC Member",
+    phone: "Contact society office",
+    email: null,
+    displayOrder: 7
+  }
+];
+
+const STAFF = [
+  {
+    name: "Mr. Kumar Sanu",
+    designation: "Staff - employed by MC",
+    phone: "Contact society office",
+    email: null,
+    displayOrder: 1
   }
 ];
 
@@ -48,6 +72,7 @@ function roleColor(designation: string) {
   if (designation === "Vice President") return "#138808";
   if (designation === "Secretary") return "#1A3A6B";
   if (designation === "Treasurer") return "#6B2A1A";
+  if (designation.startsWith("Staff")) return "#1A3A6B";
   return "var(--muted)";
 }
 
@@ -60,7 +85,7 @@ export default function CommitteePage() {
       <div className="pub-page-header">
         <div className="eyebrow-pub">Governance</div>
         <h1>Management Committee</h1>
-        <p className="ph-sub">Current elected Management Committee of Evergreen Apartments CGHS Ltd.</p>
+        <p className="ph-sub">Current elected Management Committee of Evergreen Apartment CGHS Ltd.</p>
       </div>
 
       <section className="pub-section" style={{ background: "#fff" }}>
@@ -95,6 +120,32 @@ export default function CommitteePage() {
               </div>
             </div>
           ))}
+        </div>
+
+        <div style={{ marginTop: 40 }}>
+          <div style={{ fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--saffron)", fontWeight: 600, marginBottom: 14 }}>
+            Society Staff
+          </div>
+          <h2 style={{ color: "var(--navy)", marginBottom: 8 }}>Staff Support</h2>
+          <p className="lead" style={{ marginBottom: 24 }}>
+            Staff members support the MC and society office in day-to-day operations.
+          </p>
+          <div className="committee-grid">
+            {STAFF.map((member, i) => (
+              <div key={i} className="committee-card">
+                <div className="cc-role" style={{ color: roleColor(member.designation) }}>
+                  {member.designation}
+                </div>
+                <div className="cc-name">{member.name}</div>
+                <div className="cc-contact">
+                  <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 8 }}>
+                    <Icon name="phone" size={13} color="var(--muted)" />
+                    <span>{member.phone}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
