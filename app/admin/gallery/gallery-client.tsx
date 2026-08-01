@@ -107,7 +107,8 @@ export function AdminGalleryClient() {
       const item = withImages(payload.item);
       setGalleryItems((current) => [item, ...current].sort(sortGalleryItems));
       setNotice(
-        `${item.title} posted with ${item.images.length} photo${item.images.length === 1 ? "" : "s"}.`
+        `${item.title} posted with ${item.images.length} photo${item.images.length === 1 ? "" : "s"}.` +
+        (payload.warning ? " Stored in Hostinger gallery storage." : "")
       );
       formEl.reset();
     } catch (err) {

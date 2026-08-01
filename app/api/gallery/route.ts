@@ -8,35 +8,59 @@ import {
   sortGalleryItems,
   isMissingGalleryTable
 } from "@/app/lib/gallery";
+import { readFileGalleryIndex } from "@/app/lib/gallery-file-store";
 
 type Supabase = ReturnType<typeof supabaseAdmin>;
 
+export const runtime = "nodejs";
+
 export async function GET() {
+  let supabaseError: unknown = null;
   try {
     const supabase = supabaseAdmin();
-    const { data, error } = await supabase
+    const tableItems = await readTableItems(supabase);
+    const storageItems = await readStorageIndex(supabase);
+    const fileItems = await readFileGalleryIndex();
+    return NextResponse.json({ items: mergeGalleryItems(tableItems, storageItems, fileItems) });
+  } catch (error) {
+    supabaseError = error;
+  }
+
+  const fileItems = await readFileGalleryIndex();
+  return NextResponse.json({
+    items: fileItems,
+    warning: errorMessage(supabaseError) || "Supabase gallery unavailable; using Hostinger file gallery."
+  });
+}
+
+async function readTableItems(supabase: Supabase): Promise<GalleryItem[]> {
+  const query = supabase
+    .from("gallery_items")
+    .select("id,title,caption,category,event_date,storage_bucket,storage_path,featured,published_at,meta")
+    .is("deleted_at", null)
+    .lte("published_at", new Date().toISOString())
+    .order("featured", { ascending: false })
+    .order("event_date", { ascending: false })
+    .order("published_at", { ascending: false });
+
+  const { data, error } = await query;
+  if (!error) return (data || []).map((item) => rowToItem(supabase, item));
+
+  if (isMissingGalleryTable(error)) return [];
+
+  if (isMissingColumn(error, "deleted_at")) {
+    const fallback = await supabase
       .from("gallery_items")
       .select("id,title,caption,category,event_date,storage_bucket,storage_path,featured,published_at,meta")
-      .is("deleted_at", null)
       .lte("published_at", new Date().toISOString())
       .order("featured", { ascending: false })
       .order("event_date", { ascending: false })
       .order("published_at", { ascending: false });
-
-    if (!error) {
-      const tableItems = (data || []).map((item) => rowToItem(supabase, item));
-      const storageItems = await readStorageIndex(supabase);
-      return NextResponse.json({ items: mergeGalleryItems(tableItems, storageItems) });
-    }
-
-    if (!isMissingGalleryTable(error)) throw error;
-    return NextResponse.json({ items: (await readStorageIndex(supabase)).sort(sortGalleryItems) });
-  } catch (error) {
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Could not load gallery." },
-      { status: 500 }
-    );
+    if (fallback.error) throw fallback.error;
+    return (fallback.data || []).map((item) => rowToItem(supabase, item));
   }
+
+  throw error;
 }
 
 function rowToItem(supabase: Supabase, item: any): GalleryItem {
@@ -68,9 +92,9 @@ async function readStorageIndex(supabase: Supabase): Promise<GalleryItem[]> {
   }
 }
 
-function mergeGalleryItems(tableItems: GalleryItem[], storageItems: GalleryItem[]) {
+function mergeGalleryItems(...sources: GalleryItem[][]) {
   const seen = new Set<string>();
-  return [...tableItems, ...storageItems]
+  return sources.flat()
     .filter((item) => {
       const key = item.id || item.imageUrl;
       if (!key || seen.has(key)) return false;
@@ -78,4 +102,17 @@ function mergeGalleryItems(tableItems: GalleryItem[], storageItems: GalleryItem[
       return true;
     })
     .sort(sortGalleryItems);
+}
+
+function isMissingColumn(error: { code?: string; message?: string }, column: string) {
+  return error.code === "42703" || new RegExp(column, "i").test(error.message || "");
+}
+
+function errorMessage(error: unknown) {
+  if (!error) return "";
+  if (error instanceof Error) return error.message;
+  if (typeof error === "object" && error && "message" in error) {
+    return String((error as { message?: unknown }).message || "");
+  }
+  return String(error);
 }

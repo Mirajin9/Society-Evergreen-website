@@ -12,6 +12,13 @@ import {
   sortGalleryItems,
   isMissingGalleryTable
 } from "@/app/lib/gallery";
+import {
+  appendFileGalleryItem,
+  readFileGalleryIndex,
+  removeFileGalleryImages,
+  saveFileGalleryImages,
+  writeFileGalleryIndex
+} from "@/app/lib/gallery-file-store";
 
 export const runtime = "nodejs";
 
@@ -54,56 +61,20 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const supabase = supabaseAdmin();
-    await ensurePublicAssetsBucket(supabase);
-
-    const images: GalleryImage[] = [];
-    for (const file of files) {
-      images.push(await uploadImage(supabase, file));
+    try {
+      return NextResponse.json({
+        item: await publishToSupabase({ title, caption, category, eventDate, featured, actor, files })
+      });
+    } catch (supabaseError) {
+      const item = await publishToFileGallery({ title, caption, category, eventDate, featured, actor, files });
+      return NextResponse.json({
+        item,
+        warning: errorMessage(supabaseError) || "Supabase gallery unavailable; stored in Hostinger file gallery."
+      });
     }
-    const cover = images[0];
-
-    const payload = {
-      title,
-      caption,
-      category,
-      event_date: eventDate,
-      image_name: cover.imageName,
-      mime_type: cover.mimeType,
-      size_bytes: cover.sizeBytes,
-      storage_bucket: BUCKET,
-      storage_path: cover.storagePath,
-      featured,
-      meta: { uploaded_from: "mc_gallery", actor, images }
-    };
-
-    const { data: row, error } = await supabase
-      .from("gallery_items")
-      .insert(payload)
-      .select("id,title,caption,category,event_date,featured,published_at,meta")
-      .single();
-
-    if (!error) {
-      return NextResponse.json({ item: rowToItem(row) });
-    }
-
-    if (!isMissingGalleryTable(error)) throw error;
-
-    const item = withImages({
-      id: `gal-${Date.now()}`,
-      title,
-      caption,
-      category,
-      eventDate,
-      featured,
-      publishedAt: new Date().toISOString(),
-      images
-    });
-    await writeStorageIndex(supabase, [item, ...(await readStorageIndex(supabase))].sort(sortGalleryItems));
-    return NextResponse.json({ item });
   } catch (error) {
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Could not publish gallery image." },
+      { error: errorMessage(error) || "Could not publish gallery image." },
       { status: 500 }
     );
   }
@@ -118,6 +89,18 @@ export async function DELETE(req: NextRequest) {
     const storagePath = body?.storagePath ? String(body.storagePath) : null;
     if (!id) {
       return NextResponse.json({ error: "Missing post id." }, { status: 400 });
+    }
+
+    const fileItems = await readFileGalleryIndex();
+    const fileTarget = fileItems.find((entry) => entry.id === id);
+    if (fileTarget) {
+      const result = applyDelete(fileTarget, storagePath);
+      await removeFileGalleryImages(result.removedPaths);
+      const nextItems = result.item
+        ? fileItems.map((entry) => (entry.id === id ? result.item! : entry))
+        : fileItems.filter((entry) => entry.id !== id);
+      await writeFileGalleryIndex(nextItems.sort(sortGalleryItems));
+      return NextResponse.json({ item: result.item, deleted: !result.item });
     }
 
     const supabase = supabaseAdmin();
@@ -173,7 +156,7 @@ export async function DELETE(req: NextRequest) {
     return NextResponse.json({ item: result.item, deleted: !result.item });
   } catch (error) {
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Could not delete gallery post." },
+      { error: errorMessage(error) || "Could not delete gallery post." },
       { status: 500 }
     );
   }
@@ -196,6 +179,86 @@ function applyDelete(item: GalleryItem, storagePath: string | null) {
     return { item, removedPaths: [] as string[] };
   }
   return { item: withImages({ ...item, images: remaining }), removedPaths: [storagePath] };
+}
+
+async function publishToSupabase(input: {
+  title: string;
+  caption: string;
+  category: string;
+  eventDate: string;
+  featured: boolean;
+  actor: string;
+  files: File[];
+}) {
+  const supabase = supabaseAdmin();
+  await ensurePublicAssetsBucket(supabase);
+
+  const images: GalleryImage[] = [];
+  for (const file of input.files) {
+    images.push(await uploadImage(supabase, file));
+  }
+  const cover = images[0];
+
+  const payload = {
+    title: input.title,
+    caption: input.caption,
+    category: input.category,
+    event_date: input.eventDate,
+    image_name: cover.imageName,
+    mime_type: cover.mimeType,
+    size_bytes: cover.sizeBytes,
+    storage_bucket: BUCKET,
+    storage_path: cover.storagePath,
+    featured: input.featured,
+    meta: { uploaded_from: "mc_gallery", actor: input.actor, images }
+  };
+
+  const { data: row, error } = await supabase
+    .from("gallery_items")
+    .insert(payload)
+    .select("id,title,caption,category,event_date,featured,published_at,meta")
+    .single();
+
+  if (!error) return rowToItem(row);
+
+  if (!isMissingGalleryTable(error)) throw error;
+
+  const item = withImages({
+    id: `gal-${Date.now()}`,
+    title: input.title,
+    caption: input.caption,
+    category: input.category,
+    eventDate: input.eventDate,
+    featured: input.featured,
+    publishedAt: new Date().toISOString(),
+    images
+  });
+  await writeStorageIndex(supabase, [item, ...(await readStorageIndex(supabase))].sort(sortGalleryItems));
+  return item;
+}
+
+async function publishToFileGallery(input: {
+  title: string;
+  caption: string;
+  category: string;
+  eventDate: string;
+  featured: boolean;
+  actor: string;
+  files: File[];
+}) {
+  const images = await saveFileGalleryImages(input.files);
+  const item = withImages({
+    id: `hostinger-${Date.now()}`,
+    title: input.title,
+    caption: input.caption,
+    category: input.category,
+    eventDate: input.eventDate,
+    featured: input.featured,
+    publishedAt: new Date().toISOString(),
+    images
+  });
+  await appendFileGalleryItem(item);
+  return item;
 }
 
 async function uploadImage(supabase: Supabase, file: File): Promise<GalleryImage> {
@@ -267,4 +330,13 @@ function slug(value: string) {
 function extension(value: string) {
   const match = value.match(/\.[a-z0-9]+$/i);
   return match?.[0].toLowerCase() || "";
+}
+
+function errorMessage(error: unknown) {
+  if (!error) return "";
+  if (error instanceof Error) return error.message;
+  if (typeof error === "object" && error && "message" in error) {
+    return String((error as { message?: unknown }).message || "");
+  }
+  return String(error);
 }
