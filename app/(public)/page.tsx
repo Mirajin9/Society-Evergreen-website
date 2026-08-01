@@ -62,8 +62,8 @@ const TILES = [
     id: "mygate",
     icon: "phone",
     title: "MyGate",
-    desc: "Download the MyGate app for visitor pre-approval, staff tracking, and gate convenience.",
-    href: "https://mygate.com/dl/home/",
+    desc: "Open the MyGate dashboard for visitor pre-approval, staff tracking, and gate convenience.",
+    href: "https://dashboard.mygate.com/login",
     external: true
   },
   {
@@ -135,7 +135,7 @@ export default function HomePage() {
       <section className="pub-tiles-section">
         <h2>Society Documents &amp; Records</h2>
         <p className="section-sub">
-          Member login is required for society documents. MyGate opens the official app download page.
+          Member login is required for society documents. MyGate opens the official dashboard login.
         </p>
         <div className="tile-grid">
           {TILES.map((tile) => (

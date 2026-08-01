@@ -2,7 +2,12 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Icon, StatusBadge } from "@/app/components/ui";
-import { type GalleryCategory } from "@/app/lib/local-store";
+import {
+  ensureLocalStore,
+  sortedGalleryItems,
+  type GalleryCategory,
+  type LocalGalleryItem
+} from "@/app/lib/local-store";
 
 const categories: Array<{ value: "all" | GalleryCategory; label: string }> = [
   { value: "all", label: "All" },
@@ -45,10 +50,23 @@ export function PublicGalleryClient() {
   const [imageIndex, setImageIndex] = useState(0);
 
   useEffect(() => {
-    fetch("/api/gallery", { cache: "no-store" })
-      .then((res) => res.ok ? res.json() : { items: [] })
-      .then((payload) => setItems((payload.items || []).map(withImages)))
-      .catch(() => setItems([]));
+    let mounted = true;
+
+    async function loadGallery() {
+      const remoteItems = await loadRemoteGallery();
+      if (mounted && remoteItems.length) {
+        setItems(remoteItems);
+        return;
+      }
+
+      const localItems = await loadLocalGallery();
+      if (mounted) setItems(localItems);
+    }
+
+    loadGallery();
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   const filtered = useMemo(() => {
@@ -195,4 +213,42 @@ export function PublicGalleryClient() {
 
 function labelForCategory(category: GalleryCategory) {
   return categories.find((item) => item.value === category)?.label || category;
+}
+
+async function loadRemoteGallery() {
+  try {
+    const res = await fetch("/api/gallery", { cache: "no-store" });
+    const payload = await res.json().catch(() => ({}));
+    return res.ok ? (payload.items || []).map(withImages).filter((item: GalleryItem) => item.imageUrl) : [];
+  } catch {
+    return [];
+  }
+}
+
+async function loadLocalGallery() {
+  try {
+    const store = await ensureLocalStore();
+    return sortedGalleryItems(store).map(localGalleryToItem).filter((item) => item.imageUrl);
+  } catch {
+    return [];
+  }
+}
+
+function localGalleryToItem(item: LocalGalleryItem): GalleryItem {
+  const image = {
+    imageUrl: item.imageDataUrl,
+    imageName: item.imageName || "image"
+  };
+  return {
+    id: item.id,
+    title: item.title,
+    caption: item.caption,
+    category: item.category,
+    eventDate: item.eventDate,
+    imageName: item.imageName,
+    imageUrl: item.imageDataUrl,
+    images: [image],
+    featured: item.featured,
+    publishedAt: item.publishedAt
+  };
 }

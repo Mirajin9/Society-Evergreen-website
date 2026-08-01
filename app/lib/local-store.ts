@@ -29,6 +29,7 @@ export interface LocalCredential {
   password: string;
   roles: LocalRole[];
   staffLabel?: string;
+  staffPhone?: string;
   isGeneratedFallback?: boolean;
   note?: string;
 }
@@ -180,9 +181,10 @@ const STAFF_CREDENTIALS: LocalCredential[] = [
     flatNo: 0,
     password: "MC@Kumar2026",
     roles: ["admin"],
-    staffLabel: "Staff - employed by MC",
+    staffLabel: "Kumar Sanu - employee",
+    staffPhone: "7042117183",
     isGeneratedFallback: true,
-    note: "Kumar Sanu staff account. Share directly with the MC-employed staff member."
+    note: "Kumar Sanu employee account. Contact: 7042117183."
   }
 ];
 

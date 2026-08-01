@@ -95,12 +95,12 @@ export default function AmenitiesPage() {
 
       <section className="pub-section" style={{ background: "#fff" }}>
         <div className="card pad" style={{ border: "1px solid var(--line)", borderRadius: 12, maxWidth: 620 }}>
-          <div style={{ fontWeight: 600, fontSize: 15, color: "var(--navy)", marginBottom: 8 }}>Download MyGate</div>
+          <div style={{ fontWeight: 600, fontSize: 15, color: "var(--navy)", marginBottom: 8 }}>Open MyGate</div>
           <p style={{ fontSize: 13.5, color: "var(--muted)", lineHeight: 1.65, margin: "0 0 18px" }}>
-            Members can install MyGate from the official download page and use it for visitor and gate-related convenience.
+            Members can use the official MyGate dashboard for visitor and gate-related convenience.
           </p>
-          <a href="https://mygate.com/dl/home/" target="_blank" rel="noopener noreferrer" className="dl-btn" style={{ display: "inline-flex" }}>
-            <Icon name="dl" size={12} color="#fff" /> Download MyGate
+          <a href="https://dashboard.mygate.com/login" target="_blank" rel="noopener noreferrer" className="dl-btn" style={{ display: "inline-flex" }}>
+            <Icon name="dl" size={12} color="#fff" /> Open MyGate
           </a>
         </div>
       </section>

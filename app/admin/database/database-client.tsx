@@ -39,13 +39,14 @@ export function AdminDatabaseClient() {
             <div className="eyebrow">Credential state</div>
             <div className="card table-wrap" style={{ boxShadow: "none" }}>
               <table className="tbl">
-                <thead><tr><th>Username</th><th>Password</th><th>Flat</th><th>Roles</th></tr></thead>
+                <thead><tr><th>Username</th><th>Password</th><th>Flat / Staff</th><th>Contact</th><th>Roles</th></tr></thead>
                 <tbody>
                   {adminCreds.map((credential) => (
                     <tr key={`${credential.username}-${credential.flatNo}`}>
                       <td className="mono">{credential.username}</td>
                       <td className="mono">{credential.password}</td>
                       <td>{credential.staffLabel || credential.flatNo}</td>
+                      <td>{credential.staffPhone || "-"}</td>
                       <td>{credential.roles.map((role) => <StatusBadge key={role} status={role} />)}</td>
                     </tr>
                   ))}
@@ -60,14 +61,15 @@ export function AdminDatabaseClient() {
             <div className="auth-note">Use this table only for MC-approved account recovery. The OTP login system can replace visible passwords later.</div>
           </div>
           <table className="tbl">
-            <thead><tr><th>Flat</th><th>Username</th><th>Password</th><th>Type</th><th>Note</th></tr></thead>
+            <thead><tr><th>Flat / Staff</th><th>Username</th><th>Password</th><th>Type</th><th>Contact</th><th>Note</th></tr></thead>
             <tbody>
               {memberCreds.map((credential) => (
                 <tr key={`${credential.username}-${credential.flatNo}`}>
                   <td>{credential.staffLabel || credential.flatNo}</td>
                   <td className="mono">{credential.username}</td>
                   <td className="mono">{credential.password}</td>
-                  <td>{credential.staffLabel ? "Staff/Admin" : credential.roles.includes("admin") ? "MC/Admin" : "Member"}</td>
+                  <td>{credential.staffLabel ? "Employee/Admin" : credential.roles.includes("admin") ? "MC/Admin" : "Member"}</td>
+                  <td>{credential.staffPhone || "-"}</td>
                   <td style={{ color: credential.isGeneratedFallback ? "var(--rust)" : "var(--muted)", fontSize: 12 }}>
                     {credential.note || "-"}
                   </td>

@@ -1,4 +1,4 @@
-/* ─── Evergreen Apartments — Design tokens ───────────────────────────── */
+/* ─── Evergreen Apartment — Design tokens ───────────────────────────── */
 :root {
   /* Palette — warm parchment with deep evergreen */
   --bg: #f7f6ef;
@@ -1055,11 +1055,12 @@ label.fl { display: block; font-size: 12.5px; color: var(--ink-2); margin-bottom
 }
 .gallery-carousel-media {
   position: relative; overflow: hidden; background: var(--navy-light);
-  border-radius: 8px; min-height: 420px;
+  border-radius: 8px; height: clamp(360px, 52vw, 560px);
+  display: flex; align-items: center; justify-content: center;
 }
 .gallery-carousel-media img {
-  width: 100%; height: 100%; min-height: 420px;
-  object-fit: cover; display: block;
+  width: 100%; height: 100%;
+  object-fit: contain; display: block;
 }
 .gallery-carousel-controls {
   position: absolute; left: 16px; bottom: 16px;
@@ -1193,15 +1194,13 @@ label.fl { display: block; font-size: 12.5px; color: var(--ink-2); margin-bottom
   .pub-topbar nav { display: none; }
   .pub-hamburger { display: flex; }
   .gallery-carousel { grid-template-columns: 1fr; }
-  .gallery-carousel-media,
-  .gallery-carousel-media img { min-height: 340px; }
+  .gallery-carousel-media { height: clamp(320px, 72vw, 520px); }
   .gallery-grid { grid-template-columns: 1fr 1fr; }
 }
 
 @media (max-width: 540px) {
   .gallery-grid { grid-template-columns: 1fr; }
-  .gallery-carousel-media,
-  .gallery-carousel-media img { min-height: 260px; }
+  .gallery-carousel-media { height: clamp(260px, 86vw, 420px); }
   .gallery-carousel-copy { padding: 22px; }
   .gallery-carousel-copy h2 { font-size: 28px; }
 }

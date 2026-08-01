@@ -60,8 +60,8 @@ const MC_MEMBERS = [
 const STAFF = [
   {
     name: "Mr. Kumar Sanu",
-    designation: "Staff - employed by MC",
-    phone: "Contact society office",
+    designation: "Employee - employed by MC",
+    phone: "7042117183",
     email: null,
     displayOrder: 1
   }
@@ -72,7 +72,7 @@ function roleColor(designation: string) {
   if (designation === "Vice President") return "#138808";
   if (designation === "Secretary") return "#1A3A6B";
   if (designation === "Treasurer") return "#6B2A1A";
-  if (designation.startsWith("Staff")) return "#1A3A6B";
+  if (designation.startsWith("Employee") || designation.startsWith("Staff")) return "#1A3A6B";
   return "var(--muted)";
 }
 
@@ -124,11 +124,11 @@ export default function CommitteePage() {
 
         <div style={{ marginTop: 40 }}>
           <div style={{ fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--saffron)", fontWeight: 600, marginBottom: 14 }}>
-            Society Staff
+            Society Employee
           </div>
-          <h2 style={{ color: "var(--navy)", marginBottom: 8 }}>Staff Support</h2>
+          <h2 style={{ color: "var(--navy)", marginBottom: 8 }}>Employee Support</h2>
           <p className="lead" style={{ marginBottom: 24 }}>
-            Staff members support the MC and society office in day-to-day operations.
+            Employees support the MC and society office in day-to-day operations.
           </p>
           <div className="committee-grid">
             {STAFF.map((member, i) => (
