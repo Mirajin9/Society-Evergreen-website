@@ -1,5 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { supabaseAdmin } from "@/app/lib/supabase-admin";
+import type { StoredAccount } from "@/app/lib/auth/accounts";
+import { authErrorResponse, requireAccount } from "@/app/lib/auth/request";
 import {
   GALLERY_BUCKET as BUCKET,
   GALLERY_INDEX_PATH as INDEX_PATH,
@@ -25,6 +27,12 @@ export const runtime = "nodejs";
 type Supabase = ReturnType<typeof supabaseAdmin>;
 
 export async function POST(req: NextRequest) {
+  let account: StoredAccount;
+  try {
+    account = await requireAccount(req, { admin: true });
+  } catch (error) {
+    return authErrorResponse(error);
+  }
   try {
     const form = await req.formData();
     const title = String(form.get("title") || "").trim();
@@ -33,7 +41,7 @@ export async function POST(req: NextRequest) {
     const category = CATEGORIES.has(rawCategory) ? rawCategory : "activities";
     const eventDate = String(form.get("eventDate") || new Date().toISOString().slice(0, 10));
     const featured = form.get("featured") === "on" || form.get("featured") === "true";
-    const actor = String(form.get("actor") || "MC user").slice(0, 120);
+    const actor = account.flatNo ? `${account.username} / Flat ${account.flatNo}` : account.username;
 
     // Accept multiple files (name="images") and a single legacy file (name="image").
     const files = [...form.getAll("images"), form.get("image")].filter(
@@ -83,6 +91,11 @@ export async function POST(req: NextRequest) {
 // Delete a whole post (body: { id }) or a single image within a post
 // (body: { id, storagePath }). Removes the underlying storage object(s) too.
 export async function DELETE(req: NextRequest) {
+  try {
+    await requireAccount(req, { admin: true });
+  } catch (error) {
+    return authErrorResponse(error);
+  }
   try {
     const body = await req.json().catch(() => ({}));
     const id = String(body?.id || "").trim();

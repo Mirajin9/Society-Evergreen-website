@@ -26,14 +26,14 @@ export function AdminSocietyClient() {
     };
     await updateSociety(next);
     setSociety(next);
-    setNotice("Society profile saved locally.");
+    setNotice("Society profile saved.");
   }
 
   if (!society) return <div className="loading-pad">Loading society profile...</div>;
 
   return (
     <>
-      <PageHead title="Society Profile" sub="Basic information shown on the public website." breadcrumb="ADMIN - SOCIETY" />
+      <PageHead title="Society Profile" sub="Society details used inside the member portal." breadcrumb="ADMIN - SOCIETY" />
       <div className="page-body">
         {notice && <div className="success-box" style={{ marginBottom: 14 }}>{notice}</div>}
         <form className="card pad-lg stack" onSubmit={save}>

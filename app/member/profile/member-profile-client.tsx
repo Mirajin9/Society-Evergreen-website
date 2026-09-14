@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Icon, Modal } from "@/app/components/ui";
 import {
@@ -65,19 +66,24 @@ export function MemberProfileClient() {
     if (!member || !requestedValue.trim()) return;
     setSubmitting(true);
     const fieldLabel = EDITABLE_FIELDS.find((f) => f.key === field)?.label || field;
-    await addChangeRequest({
-      flatNo: member.flatNo,
-      field: fieldLabel,
-      currentValue: String((member as unknown as Record<string, string | null>)[field] || DASH),
-      requestedValue: requestedValue.trim(),
-      reason: reason.trim()
-    });
-    const store2 = await ensureLocalStore();
-    setRequests(changeRequestsForFlat(store2, member.flatNo));
-    setSubmitting(false);
-    setModalOpen(false);
-    setRequestedValue("");
-    setReason("");
+    try {
+      await addChangeRequest({
+        flatNo: member.flatNo,
+        field: fieldLabel,
+        currentValue: String((member as unknown as Record<string, string | null>)[field] || DASH),
+        requestedValue: requestedValue.trim(),
+        reason: reason.trim()
+      });
+      const store2 = await ensureLocalStore();
+      setRequests(changeRequestsForFlat(store2, member.flatNo));
+      setModalOpen(false);
+      setRequestedValue("");
+      setReason("");
+    } catch (err) {
+      window.alert((err as Error).message);
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
@@ -113,6 +119,18 @@ export function MemberProfileClient() {
             <div style={{ marginTop: 18, padding: "10px 14px", background: "var(--navy-light)", borderRadius: 8, fontSize: 12.5, color: "var(--navy)" }}>
               Found something wrong? Use <strong>Request a correction</strong>. The society office will review and update your record.
             </div>
+          </div>
+        </div>
+
+        <div>
+          <h2 style={{ fontSize: 22, marginBottom: 16 }}>Password</h2>
+          <div className="card pad-lg" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
+            <div style={{ fontSize: 14, color: "var(--ink-2)" }}>
+              Change the password you use to sign in. You will need your current password.
+            </div>
+            <Link href="/change-password?next=/member/profile" className="dl-btn" style={{ textDecoration: "none" }}>
+              <Icon name="lock" size={13} color="#fff" /> Change password
+            </Link>
           </div>
         </div>
 

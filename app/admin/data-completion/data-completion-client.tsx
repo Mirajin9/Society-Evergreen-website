@@ -144,10 +144,10 @@ export function DataCompletionClient() {
             <Icon name="phone" size={18} color="var(--rust)" />
             <div>
               <div style={{ fontWeight: 600, fontSize: 13.5, color: "var(--rust)", marginBottom: 3 }}>
-                {missingPhone} members cannot log in — phone number missing
+                {missingPhone} members have no phone number on file
               </div>
               <div style={{ fontSize: 13, color: "var(--muted)", lineHeight: 1.55 }}>
-                The OTP login system requires a registered mobile number. Collect phone numbers from these members and add them using the Edit Members page. Once added, they can log in immediately.
+                These members sign in with the username flat followed by their flat number (for example flat12). Adding a phone number keeps records complete but doesn't change their username. For login help, reset their password from Member Logins.
               </div>
             </div>
             <Link href="/admin/members" className="btn btn-sm" style={{ background: "var(--rust)", color: "#fff", border: 0, textDecoration: "none", whiteSpace: "nowrap", flexShrink: 0 }}>

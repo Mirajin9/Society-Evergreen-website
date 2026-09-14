@@ -1,6 +1,6 @@
-import { mkdir, readFile, unlink, writeFile } from "node:fs/promises";
+import { copyFile, mkdir, readdir, readFile, stat, unlink, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 import { randomUUID } from "node:crypto";
 import {
   type GalleryImage,
@@ -8,14 +8,42 @@ import {
   withImages,
   sortGalleryItems
 } from "@/app/lib/gallery";
+import { dataPath, storageInfo } from "@/app/lib/server/data-dir";
 
-const GALLERY_DIR = join(/*turbopackIgnore: true*/ process.cwd(), "uploads", "gallery");
-const INDEX_PATH = join(GALLERY_DIR, "index.json");
 const LOCAL_PREFIX = "hostinger:";
+const SKIP_WHILE_SEARCHING = new Set(["node_modules", ".next", ".git"]);
+
+export const galleryDir = () => dataPath("gallery");
+const indexPath = () => join(galleryDir(), "index.json");
+
+interface GalleryMigration {
+  copiedFrom: string;
+  posts: number;
+  at: string;
+}
+
+let migration: Promise<void> | null = null;
+let migrationResult: GalleryMigration | null = null;
+
+export function galleryMigrationStatus() {
+  return migrationResult;
+}
+
+// Earlier builds saved the gallery inside the app folder, which Hostinger replaces on deploy.
+// The first time this build touches the gallery, copy the newest gallery it can still find
+// into the persistent data folder. The index is copied last, so an interrupted copy is retried.
+export function ensureGalleryMigrated(): Promise<void> {
+  migration ??= migrateLegacyGallery().catch((error) => {
+    migration = null;
+    console.error("[gallery] could not copy the existing gallery", error);
+  });
+  return migration;
+}
 
 export async function readFileGalleryIndex(): Promise<GalleryItem[]> {
+  await ensureGalleryMigrated();
   try {
-    const raw = await readFile(INDEX_PATH, "utf8");
+    const raw = await readFile(indexPath(), "utf8");
     const parsed = JSON.parse(raw) as { items?: unknown[] };
     return Array.isArray(parsed.items) ? parsed.items.map(withImages).sort(sortGalleryItems) : [];
   } catch {
@@ -29,16 +57,21 @@ export async function appendFileGalleryItem(item: GalleryItem) {
 }
 
 export async function writeFileGalleryIndex(items: GalleryItem[]) {
-  await mkdir(GALLERY_DIR, { recursive: true });
-  await writeFile(INDEX_PATH, JSON.stringify({ items: items.sort(sortGalleryItems) }, null, 2), "utf8");
+  await ensureGalleryMigrated();
+  await mkdir(galleryDir(), { recursive: true });
+  const tmp = `${indexPath()}.${process.pid}.${Date.now()}.tmp`;
+  await writeFile(tmp, JSON.stringify({ items: items.sort(sortGalleryItems) }, null, 2), "utf8");
+  await copyFile(tmp, indexPath());
+  await unlink(tmp).catch(() => undefined);
 }
 
 export async function saveFileGalleryImages(files: File[]): Promise<GalleryImage[]> {
-  await mkdir(GALLERY_DIR, { recursive: true });
+  await ensureGalleryMigrated();
+  await mkdir(galleryDir(), { recursive: true });
   const images: GalleryImage[] = [];
   for (const file of files) {
     const fileName = `${Date.now()}-${randomUUID().slice(0, 8)}-${slug(file.name)}${extension(file.name)}`;
-    const filePath = join(GALLERY_DIR, fileName);
+    const filePath = join(galleryDir(), fileName);
     const bytes = Buffer.from(await file.arrayBuffer());
     await writeFile(filePath, bytes);
     images.push({
@@ -56,7 +89,7 @@ export async function removeFileGalleryImages(paths: string[]) {
   for (const path of paths) {
     const fileName = fileNameFromStoragePath(path);
     if (!fileName) continue;
-    const filePath = join(GALLERY_DIR, fileName);
+    const filePath = join(galleryDir(), fileName);
     if (existsSync(filePath)) {
       await unlink(filePath).catch(() => undefined);
     }
@@ -71,7 +104,66 @@ export function fileNameFromStoragePath(path: string) {
 
 export function localGalleryFilePath(fileName: string) {
   if (!/^[a-zA-Z0-9._-]+$/.test(fileName)) return null;
-  return join(GALLERY_DIR, fileName);
+  return join(galleryDir(), fileName);
+}
+
+async function migrateLegacyGallery() {
+  const target = galleryDir();
+  if (existsSync(join(target, "index.json"))) return;
+  const source = await findLegacyGallery(target);
+  if (!source) return;
+
+  await mkdir(target, { recursive: true });
+  for (const name of await readdir(source.dir)) {
+    if (name === "index.json" || !/^[a-zA-Z0-9._-]+$/.test(name)) continue;
+    if (!existsSync(join(target, name))) await copyFile(join(source.dir, name), join(target, name));
+  }
+  await copyFile(join(source.dir, "index.json"), join(target, "index.json"));
+  migrationResult = { copiedFrom: source.dir, posts: source.posts, at: new Date().toISOString() };
+  console.info(`[gallery] copied ${source.posts} post(s) from ${source.dir} to ${target}`);
+}
+
+async function findLegacyGallery(target: string) {
+  const { domainRoot } = storageInfo();
+  const candidates = new Set<string>([join(/*turbopackIgnore: true*/ process.cwd(), "uploads", "gallery")]);
+  if (domainRoot) {
+    candidates.add(join(domainRoot, "nodejs", "uploads", "gallery"));
+    for (const buildFolder of [".builds", "hbuilds"]) {
+      await collectUploadGalleries(join(domainRoot, buildFolder), 0, candidates);
+    }
+  }
+
+  // Prefer the most recently written gallery: that is the one the live site was using.
+  let best: { dir: string; posts: number; modified: number } | null = null;
+  for (const dir of candidates) {
+    if (resolve(dir) === resolve(target)) continue;
+    try {
+      const file = join(dir, "index.json");
+      const parsed = JSON.parse(await readFile(file, "utf8")) as { items?: unknown[] };
+      const posts = Array.isArray(parsed.items) ? parsed.items.length : 0;
+      const modified = (await stat(file)).mtimeMs;
+      if (posts > 0 && (!best || modified > best.modified)) best = { dir, posts, modified };
+    } catch {
+      // Not a gallery folder.
+    }
+  }
+  return best;
+}
+
+async function collectUploadGalleries(dir: string, depth: number, out: Set<string>) {
+  if (depth > 6) return;
+  let entries;
+  try {
+    entries = await readdir(dir, { withFileTypes: true });
+  } catch {
+    return;
+  }
+  for (const entry of entries) {
+    if (!entry.isDirectory() || SKIP_WHILE_SEARCHING.has(entry.name)) continue;
+    const child = join(dir, entry.name);
+    if (entry.name === "uploads") out.add(join(child, "gallery"));
+    else await collectUploadGalleries(child, depth + 1, out);
+  }
 }
 
 function slug(value: string) {

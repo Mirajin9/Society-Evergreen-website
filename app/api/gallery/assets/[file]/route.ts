@@ -1,10 +1,11 @@
 import { readFile, stat } from "node:fs/promises";
 import { NextResponse, type NextRequest } from "next/server";
-import { localGalleryFilePath } from "@/app/lib/gallery-file-store";
+import { ensureGalleryMigrated, localGalleryFilePath } from "@/app/lib/gallery-file-store";
 
 export const runtime = "nodejs";
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ file: string }> }) {
+  await ensureGalleryMigrated();
   const { file } = await params;
   const filePath = localGalleryFilePath(file);
   if (!filePath) {

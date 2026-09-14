@@ -2,7 +2,7 @@
 
 import { FormEvent, useEffect, useState } from "react";
 import { PageHead, StatusBadge } from "@/app/components/ui";
-import { addDocument, ensureLocalStore, getSession, type LocalDocument, type LocalStore, type LocalVisibility } from "@/app/lib/local-store";
+import { addDocument, ensureLocalStore, type LocalDocument, type LocalStore, type LocalVisibility } from "@/app/lib/local-store";
 
 const documentChecklist = [
   { title: "Latest audited accounts", category: "finance" },
@@ -39,37 +39,21 @@ export function AdminRecordsClient() {
     }
     const category = String(form.get("category") || "forms");
     const record = store.records.find((item) => item.key === category);
-    const serverForm = new FormData();
-    serverForm.set("file", file);
-    serverForm.set("title", String(form.get("title") || file.name));
-    serverForm.set("category", category);
-    serverForm.set("visibility", String(form.get("visibility") || record?.defaultVisibility || "members"));
-    serverForm.set("description", String(form.get("description") || ""));
-    const session = getSession();
-    serverForm.set("actor", session ? `${session.username} / Flat ${session.flatNo}` : "MC user");
-
-    let uploadedToSupabase = false;
+    const formEl = event.currentTarget;
     try {
-      const res = await fetch("/api/admin/documents/upload", { method: "POST", body: serverForm });
-      uploadedToSupabase = res.ok;
-    } catch {
-      uploadedToSupabase = false;
+      const document = await addDocument({
+        title: String(form.get("title") || file.name),
+        category,
+        visibility: String(form.get("visibility") || record?.defaultVisibility || "members") as LocalVisibility,
+        description: String(form.get("description") || ""),
+        file
+      });
+      setStore({ ...(await ensureLocalStore()) });
+      setNotice(`${document.title} uploaded. Members can find it under Documents.`);
+      formEl.reset();
+    } catch (err) {
+      setError((err as Error).message);
     }
-
-    const document = await addDocument({
-      title: String(form.get("title") || file.name),
-      category,
-      visibility: String(form.get("visibility") || record?.defaultVisibility || "members") as LocalVisibility,
-      description: String(form.get("description") || ""),
-      fileName: file.name,
-      mimeType: file.type || "application/octet-stream",
-      sizeBytes: file.size,
-      dataUrl: await readAsDataUrl(file)
-    });
-    const next = await ensureLocalStore();
-    setStore({ ...next });
-    setNotice(`${document.title} uploaded${uploadedToSupabase ? " to Supabase and local preview" : " locally. Supabase upload did not complete."}.`);
-    event.currentTarget.reset();
   }
 
   if (!store) return <div className="loading-pad">Loading record categories...</div>;
@@ -175,15 +159,6 @@ function DocumentRow({ document }: { document: LocalDocument }) {
       </td>
     </tr>
   );
-}
-
-function readAsDataUrl(file: File) {
-  return new Promise<string>((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result));
-    reader.onerror = () => reject(reader.error || new Error("Could not read file"));
-    reader.readAsDataURL(file);
-  });
 }
 
 function formatSize(bytes: number) {

@@ -2,7 +2,7 @@
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { PageHead } from "@/app/components/ui";
-import { ensureLocalStore, getSession, saveShareCertificateRegister, type LocalStore } from "@/app/lib/local-store";
+import { ensureLocalStore, saveShareCertificateRegister, type LocalStore } from "@/app/lib/local-store";
 import { parseDocxRows } from "@/app/lib/docx";
 import { parseXlsxRows } from "@/app/lib/xlsx";
 
@@ -22,7 +22,8 @@ export function AdminShareCertificatesClient() {
     event.preventDefault();
     setNotice("");
     setError("");
-    const form = new FormData(event.currentTarget);
+    const formEl = event.currentTarget;
+    const form = new FormData(formEl);
     const file = form.get("file") as File | null;
     if (!file || file.size === 0) {
       setError("Choose an Excel or Word file to upload.");
@@ -43,26 +44,14 @@ export function AdminShareCertificatesClient() {
         setError("No table rows were found in this workbook.");
         return;
       }
-      const serverForm = new FormData();
-      serverForm.set("file", file);
-      const session = getSession();
-      serverForm.set("actor", session ? `${session.username} / Flat ${session.flatNo}` : "MC user");
-      let importedToSupabase = false;
-      try {
-        const res = await fetch("/api/admin/share-certificates/import", { method: "POST", body: serverForm });
-        importedToSupabase = res.ok;
-      } catch {
-        importedToSupabase = false;
-      }
       const saved = await saveShareCertificateRegister({
         fileName: file.name,
         columns: parsed.columns,
         rows: parsed.rows
       });
-      const next = await ensureLocalStore();
-      setStore({ ...next, shareCertificateRegister: saved });
-      setNotice(`${saved.rows.length} share certificate rows uploaded from ${file.name}${importedToSupabase ? " and saved to Supabase" : " locally. Supabase import did not complete"}.`);
-      event.currentTarget.reset();
+      setStore({ ...(await ensureLocalStore()), shareCertificateRegister: saved });
+      setNotice(`${saved.rows.length} share certificate rows uploaded from ${file.name}. Members can now view the register.`);
+      formEl.reset();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not read this register file.");
     }

@@ -4,12 +4,13 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, useState } from "react";
 import { PubLogo, Icon } from "@/app/components/ui";
-import { loginLocal } from "@/app/lib/local-store";
+import { loginLocal, safeNextPath } from "@/app/lib/local-store";
 
 export function LoginForm() {
   const router = useRouter();
   const params = useSearchParams();
-  const nextUrl = params.get("next") || "/member/dashboard";
+  const requestedNext = params.get("next");
+  const nextUrl = safeNextPath(requestedNext, "/member/dashboard");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -25,7 +26,8 @@ export function LoginForm() {
     setLoading(true);
     try {
       const session = await loginLocal(username, password);
-      router.push(session.activeRole === "admin" ? "/admin/database" : nextUrl);
+      const destination = !requestedNext && session.activeRole === "admin" ? "/admin/database" : nextUrl;
+      router.push(session.mustChangePassword ? `/change-password?next=${encodeURIComponent(destination)}` : destination);
       router.refresh();
     } catch (err) {
       setError((err as Error).message);
@@ -89,8 +91,8 @@ export function LoginForm() {
           </button>
 
           <p style={{ fontSize: 12, color: "var(--muted)", marginTop: 16, lineHeight: 1.6 }}>
-            After signing in, members can change their username and password from My Profile.
-            For account recovery, contact the MC or society office.
+            The first time you sign in, you will be asked to set your own password.
+            You can change it any time from My Profile. For account recovery, contact the MC or society office.
           </p>
 
           <div style={{ marginTop: 24, paddingTop: 16, borderTop: "1px solid var(--line)", fontSize: 13 }}>

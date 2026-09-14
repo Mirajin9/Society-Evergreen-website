@@ -5,7 +5,6 @@ import { PageHead, StatusBadge } from "@/app/components/ui";
 import {
   addNotice,
   ensureLocalStore,
-  getSession,
   sortedNotices,
   type LocalStore,
   type NoticeCategory
@@ -49,34 +48,25 @@ export function AdminNoticesClient() {
       return;
     }
 
+    const formEl = event.currentTarget;
     const payload = {
       title,
       body,
       category: String(form.get("category") || "general") as NoticeCategory,
       date: String(form.get("date") || new Date().toISOString().slice(0, 10)),
       pinned: form.get("pinned") === "on",
-      targetFlatNos,
-      actor: getSession()?.username || "MC user"
+      targetFlatNos
     };
 
-    let savedToSupabase = false;
     try {
-      const res = await fetch("/api/admin/notices", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify(payload)
-      });
-      savedToSupabase = res.ok;
-    } catch {
-      savedToSupabase = false;
+      const notice = await addNotice(payload);
+      setStore({ ...(await ensureLocalStore()) });
+      setMessage(`${notice.title} published. Members will see it after they sign in.`);
+      setAudience("all");
+      formEl.reset();
+    } catch (err) {
+      setError((err as Error).message);
     }
-
-    const notice = await addNotice(payload);
-    const next = await ensureLocalStore();
-    setStore({ ...next });
-    setMessage(`${notice.title} published${savedToSupabase ? " to Supabase and local preview" : " locally. Supabase publish did not complete."}.`);
-    setAudience("all");
-    event.currentTarget.reset();
   }
 
   if (!store) return <div className="loading-pad">Loading notices...</div>;

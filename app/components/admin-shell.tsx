@@ -11,7 +11,8 @@ const ADMIN_LINKS = [
   { href: "/admin/gallery", label: "Gallery", icon: "image" },
   { href: "/admin/records", label: "Upload Records", icon: "folder" },
   { href: "/admin/share-certificates", label: "Share Certificates", icon: "doc" },
-  { href: "/admin/members", label: "Member List", icon: "users" }
+  { href: "/admin/members", label: "Member List", icon: "users" },
+  { href: "/admin/database", label: "Member Logins", icon: "lock" }
 ];
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
@@ -32,6 +33,9 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         </Link>
         <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
           <span style={{ fontSize: 12, color: "rgba(255,255,255,0.7)", textTransform: "uppercase", letterSpacing: "0.08em" }}>MC Console</span>
+          <Link href="/change-password?next=/admin/dashboard" className="pub-nav-login" style={{ background: "rgba(255,255,255,0.14)", textDecoration: "none" }}>
+            <Icon name="lock" size={13} color="#fff" /> Change password
+          </Link>
           <button onClick={logout} className="pub-nav-login" style={{ background: "rgba(255,255,255,0.14)" }}>
             <Icon name="lock" size={13} color="#fff" /> Logout
           </button>

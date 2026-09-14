@@ -2,7 +2,7 @@
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { Icon, Modal, PageHead, StatusBadge, personInitials } from "@/app/components/ui";
-import { ensureLocalStore, updateMember, type LocalMember } from "@/app/lib/local-store";
+import { ensureLocalStore, reviewChangeRequest, updateMember, type ChangeRequest, type LocalMember } from "@/app/lib/local-store";
 
 export function AdminMembersClient() {
   const [rows, setRows] = useState<LocalMember[]>([]);
@@ -10,10 +10,36 @@ export function AdminMembersClient() {
   const [search, setSearch] = useState("");
   const [editing, setEditing] = useState<LocalMember | null>(null);
   const [notice, setNotice] = useState("");
+  const [error, setError] = useState("");
+  const [requests, setRequests] = useState<ChangeRequest[]>([]);
+  const [reviewingId, setReviewingId] = useState("");
 
   useEffect(() => {
-    ensureLocalStore().then((store) => setRows(store.members));
+    reload();
   }, []);
+
+  async function reload() {
+    const store = await ensureLocalStore();
+    setRows(store.members);
+    setRequests(store.changeRequests || []);
+  }
+
+  async function review(request: ChangeRequest, status: "approved" | "rejected") {
+    setReviewingId(request.id);
+    setNotice("");
+    setError("");
+    try {
+      await reviewChangeRequest(request.id, status);
+      await reload();
+      setNotice(status === "approved"
+        ? `Approved: Flat ${request.flatNo} ${request.field} is now "${request.requestedValue}".`
+        : `Rejected the ${request.field} request from Flat ${request.flatNo}.`);
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setReviewingId("");
+    }
+  }
 
   const visible = useMemo(() => {
     const term = search.trim().toLowerCase();
@@ -32,14 +58,14 @@ export function AdminMembersClient() {
   function onSaved(member: LocalMember) {
     setRows((current) => current.map((item) => item.id === member.id ? member : item));
     setEditing(null);
-    setNotice(`Flat ${member.flatNo} updated in local database.`);
+    setNotice(`Flat ${member.flatNo} saved.`);
   }
 
   return (
     <>
       <PageHead
         title="Members"
-        sub={`${rows.length} member records in local database - admin-only directory`}
+        sub={`${rows.length} member records - admin-only directory`}
         breadcrumb="ADMIN - MEMBERS"
         actions={<button className="btn btn-ghost btn-sm" disabled><Icon name="dl" size={13} /> Export later</button>}
       />
@@ -57,6 +83,8 @@ export function AdminMembersClient() {
           <input className="field" placeholder="Search name, flat, membership no" value={search} onChange={(event) => setSearch(event.target.value)} style={{ width: 280 }} />
         </div>
         {notice && <div className="success-box" style={{ marginBottom: 14 }}>{notice}</div>}
+        {error && <div className="error-box" style={{ marginBottom: 14 }}>{error}</div>}
+        <CorrectionRequests requests={requests} reviewingId={reviewingId} onReview={review} />
         <div className="card table-wrap">
           <table className="tbl">
             <thead>
@@ -187,4 +215,42 @@ function text(form: FormData, key: string) {
 function nullable(form: FormData, key: string) {
   const value = text(form, key);
   return value || null;
+}
+
+function CorrectionRequests({ requests, reviewingId, onReview }: {
+  requests: ChangeRequest[];
+  reviewingId: string;
+  onReview: (request: ChangeRequest, status: "approved" | "rejected") => void;
+}) {
+  const pending = requests.filter((request) => request.status === "pending");
+  if (pending.length === 0) return null;
+  return (
+    <div className="card table-wrap" style={{ marginBottom: 18 }}>
+      <div style={{ padding: "16px 18px 0" }}>
+        <div className="eyebrow">Correction requests from members ({pending.length})</div>
+        <div className="auth-note">Approving updates the member record straight away.</div>
+      </div>
+      <table className="tbl">
+        <thead><tr><th>Flat</th><th>Detail</th><th>On record</th><th>Requested</th><th>Reason</th><th>Received</th><th></th></tr></thead>
+        <tbody>
+          {pending.map((request) => (
+            <tr key={request.id}>
+              <td className="mono">{request.flatNo}</td>
+              <td>{request.field}</td>
+              <td style={{ color: "var(--muted)" }}>{request.currentValue || "-"}</td>
+              <td><strong>{request.requestedValue}</strong></td>
+              <td style={{ fontSize: 12, color: "var(--muted)" }}>{request.reason || "-"}</td>
+              <td style={{ fontSize: 12 }}>{new Date(request.createdAt).toLocaleDateString("en-IN")}</td>
+              <td>
+                <div style={{ display: "flex", gap: 6 }}>
+                  <button className="btn btn-primary btn-sm" disabled={!!reviewingId} onClick={() => onReview(request, "approved")}>Approve</button>
+                  <button className="btn btn-ghost btn-sm" disabled={!!reviewingId} onClick={() => onReview(request, "rejected")}>Reject</button>
+                </div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
 }

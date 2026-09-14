@@ -4,6 +4,11 @@ const isStaticExport = process.env.STATIC_EXPORT === "true";
 const nextConfig = {
   reactStrictMode: true,
   ...(!isStaticExport && {
+    experimental: {
+      // proxy.ts buffers request bodies and silently cuts them off at this size (default 10MB),
+      // which would corrupt gallery posts of up to 12 photos at 8MB each.
+      proxyClientMaxBodySize: "110mb",
+    },
     // Hostinger's CDN (hcdn) sits in front of the Next.js server and honors the
     // origin Cache-Control. Next.js emits `s-maxage=31536000` on prerendered HTML,
     // which let the CDN serve a year-old page that pointed at deleted, content-hashed
