@@ -13,6 +13,12 @@ import { dataPath, storageInfo } from "@/app/lib/server/data-dir";
 const LOCAL_PREFIX = "hostinger:";
 const SKIP_WHILE_SEARCHING = new Set(["node_modules", ".next", ".git"]);
 
+// Galleries recovered from Hostinger backups and committed to the repo. Each is merged into
+// the data folder once; a marker file then stops posts the MC later deletes from coming back.
+const BUNDLED_RESTORES = [
+  { id: "backup-2026-09-13", dir: "restore/gallery-2026-09-13" }
+];
+
 export const galleryDir = () => dataPath("gallery");
 const indexPath = () => join(galleryDir(), "index.json");
 
@@ -23,29 +29,30 @@ interface GalleryMigration {
 }
 
 let migration: Promise<void> | null = null;
-let migrationResult: GalleryMigration | null = null;
+let legacyCopy: GalleryMigration | null = null;
+const bundledRestores: GalleryMigration[] = [];
 
 export function galleryMigrationStatus() {
-  return migrationResult;
+  return { legacyCopy, bundledRestores };
 }
 
 // Earlier builds saved the gallery inside the app folder, which Hostinger replaces on deploy.
-// The first time this build touches the gallery, copy the newest gallery it can still find
-// into the persistent data folder. The index is copied last, so an interrupted copy is retried.
+// The first time this build touches the gallery, bring any surviving or backed-up posts into
+// the persistent data folder. Every write below waits for this, so nothing races it.
 export function ensureGalleryMigrated(): Promise<void> {
-  migration ??= migrateLegacyGallery().catch((error) => {
-    migration = null;
-    console.error("[gallery] could not copy the existing gallery", error);
-  });
+  migration ??= migrateLegacyGallery()
+    .then(restoreBundledGalleries)
+    .catch((error) => {
+      migration = null;
+      console.error("[gallery] could not copy the existing gallery", error);
+    });
   return migration;
 }
 
 export async function readFileGalleryIndex(): Promise<GalleryItem[]> {
   await ensureGalleryMigrated();
   try {
-    const raw = await readFile(indexPath(), "utf8");
-    const parsed = JSON.parse(raw) as { items?: unknown[] };
-    return Array.isArray(parsed.items) ? parsed.items.map(withImages).sort(sortGalleryItems) : [];
+    return await readIndexFile();
   } catch {
     return [];
   }
@@ -58,11 +65,7 @@ export async function appendFileGalleryItem(item: GalleryItem) {
 
 export async function writeFileGalleryIndex(items: GalleryItem[]) {
   await ensureGalleryMigrated();
-  await mkdir(galleryDir(), { recursive: true });
-  const tmp = `${indexPath()}.${process.pid}.${Date.now()}.tmp`;
-  await writeFile(tmp, JSON.stringify({ items: items.sort(sortGalleryItems) }, null, 2), "utf8");
-  await copyFile(tmp, indexPath());
-  await unlink(tmp).catch(() => undefined);
+  await writeIndexFile(items);
 }
 
 export async function saveFileGalleryImages(files: File[]): Promise<GalleryImage[]> {
@@ -107,6 +110,28 @@ export function localGalleryFilePath(fileName: string) {
   return join(galleryDir(), fileName);
 }
 
+// Throws on a damaged index (only a missing file counts as empty), so a merge never
+// silently replaces posts it couldn't read.
+async function readIndexFile(): Promise<GalleryItem[]> {
+  let raw: string;
+  try {
+    raw = await readFile(indexPath(), "utf8");
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") return [];
+    throw error;
+  }
+  const parsed = JSON.parse(raw) as { items?: unknown[] };
+  return Array.isArray(parsed.items) ? parsed.items.map(withImages).sort(sortGalleryItems) : [];
+}
+
+async function writeIndexFile(items: GalleryItem[]) {
+  await mkdir(galleryDir(), { recursive: true });
+  const tmp = `${indexPath()}.${process.pid}.${Date.now()}.tmp`;
+  await writeFile(tmp, JSON.stringify({ items: [...items].sort(sortGalleryItems) }, null, 2), "utf8");
+  await copyFile(tmp, indexPath());
+  await unlink(tmp).catch(() => undefined);
+}
+
 async function migrateLegacyGallery() {
   const target = galleryDir();
   if (existsSync(join(target, "index.json"))) return;
@@ -119,8 +144,34 @@ async function migrateLegacyGallery() {
     if (!existsSync(join(target, name))) await copyFile(join(source.dir, name), join(target, name));
   }
   await copyFile(join(source.dir, "index.json"), join(target, "index.json"));
-  migrationResult = { copiedFrom: source.dir, posts: source.posts, at: new Date().toISOString() };
+  legacyCopy = { copiedFrom: source.dir, posts: source.posts, at: new Date().toISOString() };
   console.info(`[gallery] copied ${source.posts} post(s) from ${source.dir} to ${target}`);
+}
+
+async function restoreBundledGalleries() {
+  for (const bundle of BUNDLED_RESTORES) {
+    const marker = join(galleryDir(), `.restored-${bundle.id}`);
+    if (existsSync(marker)) continue;
+    const source = join(/*turbopackIgnore: true*/ process.cwd(), bundle.dir);
+    if (!existsSync(join(source, "index.json"))) continue;
+
+    const parsed = JSON.parse(await readFile(join(source, "index.json"), "utf8")) as { items?: unknown[] };
+    const bundled = Array.isArray(parsed.items) ? parsed.items.map(withImages) : [];
+    const current = await readIndexFile();
+    const known = new Set(current.map((item) => item.id));
+    const missing = bundled.filter((item) => !known.has(item.id));
+
+    await mkdir(galleryDir(), { recursive: true });
+    for (const image of missing.flatMap((item) => item.images)) {
+      const name = fileNameFromStoragePath(image.storagePath);
+      if (!name || existsSync(join(galleryDir(), name)) || !existsSync(join(source, name))) continue;
+      await copyFile(join(source, name), join(galleryDir(), name));
+    }
+    if (missing.length) await writeIndexFile([...current, ...missing]);
+    await writeFile(marker, new Date().toISOString(), "utf8");
+    bundledRestores.push({ copiedFrom: bundle.dir, posts: missing.length, at: new Date().toISOString() });
+    console.info(`[gallery] restored ${missing.length} post(s) from ${bundle.dir}`);
+  }
 }
 
 async function findLegacyGallery(target: string) {
