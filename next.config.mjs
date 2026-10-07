@@ -4,6 +4,9 @@ const isStaticExport = process.env.STATIC_EXPORT === "true";
 const nextConfig = {
   reactStrictMode: true,
   ...(!isStaticExport && {
+    outputFileTracingExcludes: {
+      "*": ["./output/pdf/**/*", "./tmp/**/*"],
+    },
     experimental: {
       // proxy.ts buffers request bodies and silently cuts them off at this size (default 10MB),
       // which would corrupt gallery posts of up to 12 photos at 8MB each.

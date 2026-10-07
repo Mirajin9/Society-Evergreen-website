@@ -35,7 +35,13 @@ const EDITABLE_MEMBER_KEYS = [
 
 type MemberPatch = Partial<Record<(typeof EDITABLE_MEMBER_KEYS)[number], string | null>>;
 type StoredNotice = LocalNotice & { createdBy: string; legacyId?: string };
-type StoredDocument = Omit<LocalDocument, "dataUrl"> & { storedFile: string; uploadedBy: string; legacyId?: string };
+type StoredDocument = Omit<LocalDocument, "dataUrl"> & {
+  storedFile: string;
+  uploadedBy: string;
+  legacyId?: string;
+  deletedAt?: string;
+  deletedBy?: string;
+};
 type StoredRegister = LocalShareCertificateRegister & { uploadedBy: string };
 type StoredChangeRequest = ChangeRequest & { reviewedBy?: string; reviewedAt?: string; legacyId?: string };
 
@@ -78,10 +84,7 @@ export async function portalSnapshot(account: StoredAccount): Promise<LocalStore
   const admin = isAdmin(account);
   const userRank = admin ? VISIBILITY_RANK.admin : VISIBILITY_RANK.members;
   const members = sourceMembers.map((member) => withOverride(toMemberRecord(member), data.memberOverrides[String(member.flat)]));
-  const uploaded: LocalDocument[] = data.documents.map(({ storedFile: _file, uploadedBy: _by, legacyId: _legacy, ...document }) => ({
-    ...document,
-    dataUrl: `/api/portal/documents/${encodeURIComponent(document.id)}`
-  }));
+  const uploaded = data.documents.filter((document) => !document.deletedAt).map(toClientDocument);
 
   return {
     version: 12,
@@ -107,7 +110,7 @@ export async function portalCounts() {
   const data = await portal.read();
   return {
     notices: data.notices.length,
-    documents: data.documents.length,
+    documents: data.documents.filter((document) => !document.deletedAt).length,
     shareCertificateRegister: !!data.shareCertificateRegister,
     changeRequests: data.changeRequests.length
   };
@@ -192,8 +195,65 @@ export async function documentFile(account: StoredAccount, id: string) {
   const data = await portal.read();
   const document = data.documents.find((item) => item.id === id);
   const userRank = isAdmin(account) ? VISIBILITY_RANK.admin : VISIBILITY_RANK.members;
-  if (!document || VISIBILITY_RANK[document.visibility] > userRank) throw new AuthError(404, "Document not found.");
+  if (!document || document.deletedAt || VISIBILITY_RANK[document.visibility] > userRank) throw new AuthError(404, "Document not found.");
   return { path: dataPath("documents", document.storedFile), fileName: document.fileName, mimeType: document.mimeType };
+}
+
+export function updateDocument(account: StoredAccount, id: string, input: unknown) {
+  if (!isAdmin(account)) throw new AuthError(403, "MC access is required.");
+  const body = asRecord(input);
+  const patch: Partial<Pick<LocalDocument, "title" | "category" | "visibility" | "description">> = {};
+  if ("title" in body) {
+    if (typeof body.title !== "string" || !body.title.trim() || body.title.trim().length > 200) {
+      throw new AuthError(400, "Add a document title of up to 200 characters.");
+    }
+    patch.title = body.title.trim();
+  }
+  if ("description" in body) {
+    if (typeof body.description !== "string" || body.description.trim().length > 2000) {
+      throw new AuthError(400, "Keep the description within 2,000 characters.");
+    }
+    patch.description = body.description.trim();
+  }
+  if ("category" in body) {
+    if (typeof body.category !== "string" || !RECORD_CATEGORIES.some((record) => record.key === body.category)) {
+      throw new AuthError(400, "Choose a valid document category.");
+    }
+    patch.category = body.category;
+  }
+  if ("visibility" in body) {
+    if (!VISIBILITIES.includes(body.visibility as LocalVisibility)) {
+      throw new AuthError(400, "Choose a valid document visibility.");
+    }
+    patch.visibility = body.visibility as LocalVisibility;
+  }
+  if (!Object.keys(patch).length) throw new AuthError(400, "Choose document details to update.");
+
+  return portal.update((data) => {
+    const document = data.documents.find((item) => item.id === id && !item.deletedAt);
+    if (!document) throw new AuthError(404, "Document not found.");
+    const changes = Object.entries(patch).filter(([key, value]) => document[key as keyof typeof patch] !== value);
+    if (changes.length) {
+      const details = changes.map(([key, value]) => `${key}: ${JSON.stringify(document[key as keyof typeof patch])} -> ${JSON.stringify(value)}`).join("; ");
+      Object.assign(document, patch);
+      audit(data, account, "document.updated", "document", document.title, details);
+    }
+    return toClientDocument(document);
+  });
+}
+
+export function deleteDocument(account: StoredAccount, id: string) {
+  if (!isAdmin(account)) throw new AuthError(403, "MC access is required.");
+  return portal.update((data) => {
+    const document = data.documents.find((item) => item.id === id && !item.deletedAt);
+    if (!document) throw new AuthError(404, "Document not found.");
+    // Keep the file and legacy ID for recovery and to prevent old browser data re-uploading it.
+    // Deleted records are excluded from every library and cannot be downloaded by ID.
+    document.deletedAt = new Date().toISOString();
+    document.deletedBy = account.username;
+    audit(data, account, "document.deleted", "document", document.title, `${document.fileName} removed from the document library.`);
+    return { deleted: true };
+  });
 }
 
 export function saveShareCertificateRegister(account: StoredAccount, input: unknown) {
@@ -344,7 +404,7 @@ function withOverride(record: LocalMember, patch: MemberPatch | undefined): Loca
   return patch ? ({ ...record, ...patch } as LocalMember) : record;
 }
 
-function toClientDocument({ storedFile: _file, uploadedBy: _by, legacyId: _legacy, ...document }: StoredDocument): LocalDocument {
+function toClientDocument({ storedFile: _file, uploadedBy: _by, legacyId: _legacy, deletedAt: _deletedAt, deletedBy: _deletedBy, ...document }: StoredDocument): LocalDocument {
   return { ...document, dataUrl: `/api/portal/documents/${encodeURIComponent(document.id)}` };
 }
 

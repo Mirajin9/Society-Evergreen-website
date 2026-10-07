@@ -62,6 +62,8 @@ export interface LocalDocument {
   uploadedAt: string;
 }
 
+export type DocumentDetails = Pick<LocalDocument, "title" | "category" | "visibility" | "description">;
+
 export interface LocalShareCertificateRegister {
   id: string;
   fileName: string;
@@ -405,6 +407,18 @@ export async function addDocument(input: {
   form.set("description", input.description);
   const payload = await send<{ document: LocalDocument }>("/api/portal/documents", { method: "POST", body: form });
   return payload.document;
+}
+
+export async function updateDocument(id: string, details: DocumentDetails): Promise<LocalDocument> {
+  const payload = await send<{ document: LocalDocument }>(`/api/portal/documents/${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    ...jsonBody(details)
+  });
+  return payload.document;
+}
+
+export async function deleteDocument(id: string): Promise<void> {
+  await send(`/api/portal/documents/${encodeURIComponent(id)}`, { method: "DELETE" });
 }
 
 export async function addNotice(notice: Omit<LocalNotice, "id" | "date" | "targetFlatNos"> & { date?: string; targetFlatNos?: number[] | null }): Promise<LocalNotice> {

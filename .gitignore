@@ -29,3 +29,7 @@ Thumbs.db
 
 # Local/raw uploads should not be published by default
 /uploads/
+
+# Compressed document copies and local verification artifacts
+/output/pdf/
+/tmp/

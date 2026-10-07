@@ -41,7 +41,8 @@ export function storageInfo(): StorageInfo {
 }
 
 export function dataPath(...parts: string[]) {
-  return join(storageInfo().dir, ...parts);
+  // Runtime uploads belong to persistent storage, not the deployment's traced assets.
+  return join(/*turbopackIgnore: true*/ storageInfo().dir, ...parts);
 }
 
 // Hostinger keeps each site in ~/domains/<domain>/ with public_html beside the app folder.
